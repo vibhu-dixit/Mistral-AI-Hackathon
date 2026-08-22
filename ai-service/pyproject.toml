@@ -1,0 +1,17 @@
+[project]
+name = "mistral-pipeline"
+version = "0.1.0"
+description = "RoadWatch Mistral vision / OCR / civic-agent pipeline"
+requires-python = ">=3.11"
+dependencies = [
+  "mistralai>=1.7.0",
+  "pydantic>=2.0",
+  "pillow>=10.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["mistral_pipeline*"]
