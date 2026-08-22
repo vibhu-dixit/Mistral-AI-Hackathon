@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import { analyzeImage, analyzeVideo } from "@/lib/api/client";
@@ -22,12 +22,16 @@ interface AnalyzeInput {
 }
 
 export function useAnalyzeUpload() {
+  const queryClient = useQueryClient();
   const [stageIndex, setStageIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const mutation = useMutation<AnalyzeResponse, Error, AnalyzeInput>({
     mutationFn: ({ file, kind, coords }) =>
       kind === "video" ? analyzeVideo(file, coords) : analyzeImage(file, coords),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hazards"] });
+    },
   });
 
   useEffect(() => {

@@ -60,7 +60,10 @@ export async function analyzeImage(
       ai_reasoning: typeof raw.ai_reasoning === "string" ? raw.ai_reasoning : "",
     };
   }
-  return { hazards: [mapRawHazard(raw)], persist_error: typeof raw.persist_error === "string" ? raw.persist_error : undefined };
+  return {
+    hazards: [mapRawHazard(raw)],
+    persist_error: typeof raw.persist_error === "string" ? raw.persist_error : undefined,
+  };
 }
 
 export async function analyzeVideo(
@@ -83,6 +86,14 @@ export async function getHazard(id: string): Promise<Hazard | undefined> {
     throw new Error(typeof body?.detail === "string" ? body.detail : `Request failed with status ${res.status}`);
   }
   return mapRawHazard((await res.json()) as Record<string, unknown>);
+}
+
+export async function updateHazardVotes(id: string, votes: number): Promise<void> {
+  await backendFetch(`/api/hazards/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ votes: Math.max(0, Math.trunc(votes)) }),
+  });
 }
 
 export async function submitReport(id: string): Promise<{ status: HazardStatus }> {

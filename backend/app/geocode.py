@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
+
+from mistral_pipeline.geo import normalize_sf_street_name
 
 NOMINATIM = "https://nominatim.openstreetmap.org/reverse"
 USER_AGENT = "RoadWatch/1.0 (Mistral AI Hackathon)"
 
 
-def reverse_geocode(latitude: float, longitude: float) -> str | None:
+def reverse_geocode(latitude: float, longitude: float) -> dict[str, Any] | None:
+    """Reverse-geocode GPS to a map label plus the SF permit street name."""
     params = {
         "lat": latitude,
         "lon": longitude,
@@ -28,5 +33,12 @@ def reverse_geocode(latitude: float, longitude: float) -> str | None:
     else:
         label = data.get("display_name")
     if label and neighborhood and neighborhood not in str(label):
-        return f"{label}, {neighborhood}"
-    return label
+        label = f"{label}, {neighborhood}"
+    if not label and not road:
+        return None
+    return {
+        "label": label,
+        "road": road,
+        "road_normalized": normalize_sf_street_name(road) if road else None,
+        "neighborhood": neighborhood,
+    }
