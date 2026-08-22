@@ -1,30 +1,32 @@
 # Frontend — Reporting Web App
 
-## Scope
+Next.js (App Router) client for RoadWatch: photo capture/upload, geotagging,
+the analysis-progress screen, the map dashboard, hazard detail, and the
+generated-report screen. See [`PLAN.md`](PLAN.md) for the full route map,
+component structure, and data types, and [`../docs/API_CONTRACT.md`](../docs/API_CONTRACT.md)
+for the shared hazard schema and backend endpoints.
 
-- Photo capture/upload UI (browser camera via `<input capture>` /
-  `getUserMedia`, or a plain file upload)
-- Geotagging: browser Geolocation API for current position, and/or reading
-  GPS EXIF data out of an uploaded photo if present
-- Report submission flow → confirmation screen → tracking ID lookup
-- Talks to the backend via API only (see [`../docs/API_CONTRACT.md`](../docs/API_CONTRACT.md))
+## Setup
+
+```bash
+cd web-app
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+By default the app runs entirely on mock data (`NEXT_PUBLIC_USE_MOCK_DATA=true`
+in `.env.local`) — no backend required. To point it at the real backend, set
+`NEXT_PUBLIC_USE_MOCK_DATA=false` and `NEXT_PUBLIC_API_BASE_URL` to the
+backend's origin (defaults to `http://localhost:8010`, matching
+`backend/README.md`).
 
 ## Notes
 
-- You don't need a live backend to start. Mock `POST /api/reports` and
-  `GET /api/reports/:tracking_id` against the shapes in the API contract
-  (e.g. a local JSON file or `json-server`), and swap in the real base URL
-  once Backend has something running.
-- The confirmation screen should surface the `tracking_id` prominently —
-  it's how the citizen looks up status later.
+- The confirmation/report screen surfaces the hazard's report status
+  prominently — see the generated-report screen at `/report/[id]`.
 - Should work well on mobile browsers (this is how most citizens will
   actually use it — standing next to a pothole), so treat mobile-web as the
   primary layout target even though it's not a native app.
-- Stack: **Next.js (App Router) + TypeScript + Tailwind**, map via Mapbox
-  (Leaflet as a no-API-key fallback). See [`PLAN.md`](PLAN.md) for the full
-  route map, component structure, data types, mock data, and build order.
-
-## Getting started
-
-_TODO: once the Next.js app is scaffolded, add install + run instructions
-here._
+- Stack: **Next.js (App Router) + TypeScript + Tailwind**, map via Leaflet
+  (no API key required).

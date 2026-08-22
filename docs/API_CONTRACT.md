@@ -1,67 +1,133 @@
-# API Contract (Draft)
+# API Contract — RoadWatch (image MVP)
 
-This is the shared contract between all four workstreams. It's a draft — the
-**Backend/API** owner has final say and should update this file as the real
-schema lands, but everyone else should build against this now instead of
-waiting.
+Shared contract for the web app, dashboard, AI service, and backend.
 
-If you change something here, ping the channel — web app/dashboard may
-already be mocking against it.
+**Scope:** still images only. Video / frame extraction is deferred.
 
-## Core data model: `Report`
+## Core analysis object
+
+Returned by `POST /analyze-image` and stored on `hazards`.
 
 ```json
 {
-  "id": "string (uuid)",
-  "tracking_id": "string (short human-friendly code, e.g. PH-7F3K)",
-  "photo_url": "string (url)",
-  "location": {
-    "lat": "number",
-    "lng": "number"
-  },
-  "created_at": "string (ISO 8601)",
-  "status": "submitted | acknowledged | in_progress | resolved",
-  "severity": "low | medium | high | critical | null",
-  "category": "string | null",
-  "responsible_party": "string | null",
-  "report_count": "number (how many citizen reports reference this pothole)"
+  "hazard_type": "pothole",
+  "severity": "urgent",
+  "confidence": 0.94,
+  "latitude": 37.775,
+  "longitude": -122.413,
+  "description": "Large pothole in the westbound wheel path.",
+  "priority_score": 87,
+  "duplicate": false,
+  "target_category": "Street Defect",
+  "generated_report": "Large pothole located...",
+  "hazard_detected": true,
+  "lane_impact": "partial",
+  "location_label": "Folsom St & 8th St, San Francisco",
+  "location_confidence": "high",
+  "ocr_text": "FOLSOM",
+  "ai_reasoning": "Defect occupies the vehicle wheel path and appears deep.",
+  "civic_category": "Street Defect",
+  "target_agency": "San Francisco Public Works via SF311",
+  "human_review_required": false,
+  "status": "report_ready",
+  "hazard_id": "uuid",
+  "image_url": "https://...",
+  "duplicate_match": null,
+  "nearby_reports": [],
+  "pipeline": []
 }
 ```
 
-Notes:
-- `severity`, `category`, `responsible_party` start `null` at submission and
-  get filled in once the AI/ML service has processed the photo — reports are
-  created optimistically, not blocked on AI inference.
-- `tracking_id` is what's shown to the citizen on the confirmation screen for
-  status lookup — keep it short and typo-resistant.
+### Enums
 
-## Backend/API endpoints (web app + dashboard consume these)
+| Field | Values |
+|---|---|
+| `hazard_type` | `pothole`, `road_debris`, `blocked_lane`, `flooding`, `collision`, `damaged_signage`, `none` |
+| `severity` | `routine`, `urgent`, `critical` |
+| `status` | `detected`, `report_ready`, `reported`, `in_progress`, `resolved` |
+| `lane_impact` | `none`, `partial`, `full` |
+
+`collision` is always `human_review_required: true`. RoadWatch does not contact emergency services.
+
+## Backend endpoints
 
 | Method | Path | Purpose |
 |---|---|---|
-| `POST` | `/api/reports` | Submit a new report (photo + GPS coords). Returns `Report` with `tracking_id`. |
-| `GET` | `/api/reports/:tracking_id` | Look up a single report's status (citizen tracking screen). |
-| `GET` | `/api/reports` | List reports, filterable by `status`, `severity`, bounding box — used by the dashboard. |
-| `PATCH` | `/api/reports/:id` | Update status/severity/etc — called internally after AI processing, and by city staff. |
+| `GET` | `/health` | Liveness |
+| `GET` | `/agent-loop` | SEE → UNDERSTAND → LOCATE → CHECK → PRIORITIZE → ROUTE → ACT |
+| `POST` | `/analyze-image` | Upload a photo + optional GPS. Runs Mistral vision → OCR → locate → duplicate check → civic report. |
+| `GET` | `/analyze-image/schema` | Shared 10-field contract |
+| `GET` | `/api/hazards` | List stored hazards for the map |
+| `GET` | `/api/hazards/:id` | Hazard + reports + observations |
+| `PATCH` | `/api/hazards/:id` | Update `status` |
+| `POST` | `/api/hazards/:id/submit` | Simulated SF311 submit (`RW-SIM-...`). Never auto-submits critical/collision. |
+| `POST` | `/api/observations` | Capture-client image upload. EXIF GPS, then client GPS. Same Mistral pipeline. |
+| `GET` | `/api/observations` | List recent in-memory observations |
+| `GET` | `/api/observations/:id` | One observation |
 
-## AI/ML service interface (backend calls this internally)
+### `POST /analyze-image`
 
-Exposed by the AI/ML workstream, called by the backend after a report is
-created:
+`multipart/form-data`
 
+| Field | Type | Required |
+|---|---|---|
+| `file` | image file | yes |
+| `latitude` | float | no (falls back to EXIF GPS) |
+| `longitude` | float | no |
+| `force_new` | bool | no — if a nearby RoadWatch duplicate exists, link a new sighting instead of creating a row. Set true to force a new hazard. |
+
+The response includes:
+
+- `contract` — the 10 shared fields for other workstreams
+- `agent_loop` — Ibrahim's demo trace (see / understand / locate / check / prioritize / route / act)
+- `pipeline` — timed model calls
+
+If no hazard is present, `hazard_detected` is `false` and nothing is stored.
+
+## Image observation pipeline
+
+Capture-client handoff used by `web-app/`. EXIF GPS is authoritative when present; client GPS is the fallback. OCR is corroborating evidence and does not replace coordinates.
+
+`POST /api/observations` (multipart form data)
+
+- `image`: required image file
+- `client_lat`: optional number
+- `client_lng`: optional number
+
+Response:
+
+```json
+{
+  "id": "uuid",
+  "asset_name": "road.jpg",
+  "coordinates": { "latitude": 37.7749, "longitude": -122.4194 },
+  "location_source": "exif | client_gps | ocr | unavailable",
+  "location_confidence": 0.0,
+  "ocr_text": null,
+  "hazard_type": "pothole",
+  "severity": "routine | urgent | critical | null",
+  "confidence": 0.0,
+  "description": "string",
+  "processing_status": "queued | processing | complete | failed",
+  "generated_report": "string | null",
+  "duplicate": false,
+  "hazard_id": "uuid | null",
+  "created_at": "ISO 8601"
+}
 ```
-POST /analyze
-Request:  { "photo_url": "string", "lat": "number", "lng": "number" }
-Response: { "severity": "low|medium|high|critical", "category": "string", "responsible_party": "string" }
-```
 
-This does not need to be public-facing — it's an internal service the backend
-calls. The AI/ML owner can stand this up standalone and test it independently
-of the backend integration.
+This endpoint runs the same Mistral pipeline as `POST /analyze-image`.
 
-## Mocking before the real thing exists
+`GET /api/observations` lists in-memory findings. `GET /api/observations/:id` returns one finding.
 
-Web App and Dashboard should not wait on Backend to build real endpoints.
-Stand up a mock (e.g. a static JSON file, `json-server`, or a few hardcoded
-responses) matching the shapes above and swap in the real base URL once
-Backend has something running.
+
+
+## Agent loop
+
+`pipeline` on the response is the demo trace:
+
+1. **locate** — GPS / EXIF + Nominatim
+2. **see** — Mistral vision (`mistral-small-latest`)
+3. **ocr** — Mistral OCR (`mistral-ocr-latest`)
+4. **check** — nearby RoadWatch rows + SF311
+5. **act** — Mistral agent writes category, priority, municipal report
