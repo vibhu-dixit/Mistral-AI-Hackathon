@@ -48,6 +48,19 @@ class DuplicateMatch(BaseModel):
     longitude: float | None = None
 
 
+class StreetPermitMatch(BaseModel):
+    """Contractor on an SF Active Street Use Permit near the photo GPS."""
+
+    agent: str | None = None
+    agent_phone: str | None = None
+    street_name: str | None = None
+    permit_number: str | None = None
+    permit_type: str | None = None
+    status: str | None = None
+    distance_meters: float | None = None
+    street_match: bool = False
+
+
 class AgentResult(BaseModel):
     location_label: str
     location_confidence: LocationConfidence
@@ -101,3 +114,6 @@ class HazardAnalysis(BaseModel):
     persisted: bool = False
     persist_error: str | None = None
     linked_to_existing: bool = False
+    agent: str | None = None
+    agent_phone: str | None = None
+    street_permit: StreetPermitMatch | None = None

@@ -38,7 +38,7 @@ export function HazardCard({
       )}
     >
       {hazard.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- Supabase/public image URLs, no next/image domain config
+        // eslint-disable-next-line @next/next/no-img-element -- served through the backend image proxy
         <img
           src={hazard.image_url}
           alt={HAZARD_TYPE_LABEL[hazard.hazard_type]}

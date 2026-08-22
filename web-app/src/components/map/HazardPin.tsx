@@ -51,6 +51,12 @@ export function HazardPin({ hazard, onSelect, isHighlighted, onHover }: HazardPi
         <strong>{HAZARD_TYPE_LABEL[hazard.hazard_type]}</strong>
         <br />
         {hazard.location_label}
+        <br />
+        Street: {hazard.permit_street_name}
+        <br />
+        Agent: {hazard.agent}
+        <br />
+        Phone: {hazard.agent_phone}
       </Popup>
     </CircleMarker>
   );

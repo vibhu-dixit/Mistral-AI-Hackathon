@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+
+import { updateHazardVotes } from "@/lib/api/client";
 
 type VoteDirection = "up" | "down" | null;
 
@@ -19,26 +22,35 @@ function writeStoredVote(hazardId: string, direction: VoteDirection) {
   }
 }
 
-/**
- * No backend vote endpoint exists yet, so the user's own vote is tracked
- * client-side (per-browser, via localStorage) and layered on top of the
- * hazard's base `votes` count from the live hazard. Swap this for a
- * real mutation once the AI/Backend lead exposes a vote endpoint — the
- * component using this hook (VoteWidget) doesn't need to change.
- */
+function directionValue(direction: VoteDirection): number {
+  if (direction === "up") return 1;
+  if (direction === "down") return -1;
+  return 0;
+}
+
 export function useVote(hazardId: string, baseVotes: number) {
+  const queryClient = useQueryClient();
   const [direction, setDirection] = useState<VoteDirection>(() => readStoredVote(hazardId));
+  const [optimistic, setOptimistic] = useState<number | null>(null);
+
+  useEffect(() => {
+    setOptimistic(null);
+  }, [baseVotes]);
 
   function castVote(next: Exclude<VoteDirection, null>) {
     const resolved = direction === next ? null : next;
+    const nextVotes = Math.max(0, (optimistic ?? baseVotes) + (directionValue(resolved) - directionValue(direction)));
     setDirection(resolved);
     writeStoredVote(hazardId, resolved);
+    setOptimistic(nextVotes);
+    void updateHazardVotes(hazardId, nextVotes).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["hazards"] });
+      queryClient.invalidateQueries({ queryKey: ["hazard", hazardId] });
+    });
   }
 
-  const delta = direction === "up" ? 1 : direction === "down" ? -1 : 0;
-
   return {
-    score: baseVotes + delta,
+    score: optimistic ?? baseVotes,
     direction,
     upvote: () => castVote("up"),
     downvote: () => castVote("down"),
