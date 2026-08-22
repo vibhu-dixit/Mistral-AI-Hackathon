@@ -64,8 +64,9 @@ export default function AnalyzePage() {
                   coords: geolocation.coords ?? undefined,
                 })
               }
+              disabled={geolocation.status === "requesting"}
             >
-              Analyze Drive
+              {geolocation.status === "requesting" ? "Getting location..." : "Analyze Drive"}
             </Button>
             <Button variant="secondary" onClick={() => setSelected(null)}>
               Choose a different file
@@ -84,12 +85,17 @@ export default function AnalyzePage() {
           {data.hazards.map((hazard) => (
             <HazardCard key={hazard.id} hazard={hazard} />
           ))}
-          <Link href={`/dashboard?highlight=${highlightIds}`}>
-            <Button className="w-full justify-center">
-              View on map
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+          {data.persist_error ? (
+            <p className="text-sm text-rw-severity-critical">{data.persist_error}</p>
+          ) : null}
+          {data.hazards.length > 0 ? (
+            <Link href={`/dashboard?highlight=${highlightIds}`}>
+              <Button className="w-full justify-center">
+                View on map
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          ) : null}
         </div>
       )}
     </div>
