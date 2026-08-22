@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { updateHazardVotes } from "@/lib/api/client";
 
@@ -33,9 +33,15 @@ export function useVote(hazardId: string, baseVotes: number) {
   const [direction, setDirection] = useState<VoteDirection>(() => readStoredVote(hazardId));
   const [optimistic, setOptimistic] = useState<number | null>(null);
 
-  useEffect(() => {
+  // Once the server-confirmed baseVotes changes (a refetch landed), drop the
+  // optimistic override and trust the real value again. Adjusting state
+  // during render (React's documented pattern for this) instead of in an
+  // effect avoids an extra render pass.
+  const [reconciledFor, setReconciledFor] = useState(baseVotes);
+  if (baseVotes !== reconciledFor) {
+    setReconciledFor(baseVotes);
     setOptimistic(null);
-  }, [baseVotes]);
+  }
 
   function castVote(next: Exclude<VoteDirection, null>) {
     const resolved = direction === next ? null : next;

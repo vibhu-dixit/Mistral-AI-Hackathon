@@ -1,5 +1,4 @@
 import { SeverityBadge } from "@/components/hazard/SeverityBadge";
-import { StreetPermitInfo } from "@/components/hazard/StreetPermitInfo";
 import { Card } from "@/components/ui/Card";
 import { HAZARD_TYPE_LABEL, type Hazard } from "@/lib/types";
 
