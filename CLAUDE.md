@@ -2,7 +2,7 @@
 
 This is a hackathon project with four independent workstreams, each in its
 own top-level folder. Each folder has its own `CLAUDE.md` with scoped
-context — if you're working inside `mobile-app/`, `backend/`, `ai-service/`,
+context — if you're working inside `web-app/`, `backend/`, `ai-service/`,
 or `dashboard/`, read that folder's `CLAUDE.md` first, it takes precedence
 over this one for anything specific to that area.
 
@@ -10,7 +10,8 @@ over this one for anything specific to that area.
   workstream builds against. Treat this as the source of truth for how the
   pieces talk to each other. If it's out of date relative to real code,
   update it rather than letting it drift.
-- `mobile-app/` — photo capture, GPS/EXIF tagging, submission + tracking UI.
+- `web-app/` — a **web app** (browser-based, not native mobile) for photo
+  capture/upload, GPS/EXIF tagging, submission + tracking UI.
 - `backend/` — report ingestion, DB schema, routing/integration glue. Owns
   the data model.
 - `ai-service/` — Mistral-based severity assessment and location →

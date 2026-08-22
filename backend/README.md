@@ -27,7 +27,7 @@
 ## Notes
 
 - If the API contract needs to change, update
-  `../docs/API_CONTRACT.md` in the same PR and flag it — mobile/dashboard
+  `../docs/API_CONTRACT.md` in the same PR and flag it — web app/dashboard
   may be mocking against the old shape.
 - Pick your own stack (Node/Express, Python/FastAPI, etc.) — nothing is
   locked in yet. Once chosen, add setup/run instructions here.

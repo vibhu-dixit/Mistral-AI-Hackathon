@@ -14,7 +14,7 @@ gets built.
   `ai-service` workstream) — don't reimplement severity/category logic here,
   call out to it.
 - If you change the schema or endpoint shapes, update
-  `../docs/API_CONTRACT.md` in the same change and flag it — mobile and
+  `../docs/API_CONTRACT.md` in the same change and flag it — web app and
   dashboard build against that file directly.
 - No stack is chosen yet. If the user hasn't specified one, ask before
   scaffolding (Node/Express vs. Python/FastAPI vs. something else changes
