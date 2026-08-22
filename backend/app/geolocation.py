@@ -1,9 +1,15 @@
 from io import BytesIO
 from typing import Any
 
-from PIL import Image
+import pillow_heif
+from PIL import ExifTags, Image
 
 from .models import Coordinates, LocationSource
+
+# Idempotent — safe even if mistral_pipeline.images/geo already did this in
+# the same process. Without it, Image.open() can't read HEIC at all, so
+# EXIF GPS extraction silently returns None for iPhone photos.
+pillow_heif.register_heif_opener()
 
 
 def _as_float(value: Any) -> float:
@@ -22,7 +28,10 @@ def extract_exif_coordinates(image_bytes: bytes) -> Coordinates | None:
     try:
         image = Image.open(BytesIO(image_bytes))
         exif = image.getexif()
-        gps = exif.get(34853)
+        # GPSInfo (tag 34853) is a nested IFD, not a flat value — get_ifd()
+        # resolves it to the {tag: value} dict; exif.get(34853) returns
+        # just the IFD's byte offset as a plain int on modern Pillow.
+        gps = exif.get_ifd(ExifTags.IFD.GPSInfo)
         if not gps:
             return None
 
@@ -42,7 +51,7 @@ def extract_exif_coordinates(image_bytes: bytes) -> Coordinates | None:
             latitude=_dms_to_decimal(latitude, str(latitude_ref)),
             longitude=_dms_to_decimal(longitude, str(longitude_ref)),
         )
-    except (KeyError, TypeError, ValueError, OSError, ZeroDivisionError):
+    except (KeyError, TypeError, ValueError, OSError, ZeroDivisionError, AttributeError):
         return None
 
 
