@@ -18,7 +18,7 @@ export default function AnalyzePage() {
   const [selected, setSelected] = useState<{ file: File; kind: "image" | "video" } | null>(
     null,
   );
-  const { analyze, isPending, isSuccess, data, stageIndex, stages, reset } =
+  const { analyze, isPending, isSuccess, error, data, stageIndex, stages, reset } =
     useAnalyzeUpload();
   const geolocation = useGeolocation();
 
@@ -35,7 +35,7 @@ export default function AnalyzePage() {
       <div>
         <h1 className="text-2xl font-semibold text-rw-text">Analyze a drive</h1>
         <p className="mt-1 text-rw-text-muted">
-          Take a photo, or upload a photo or short street video. Mistral does the rest.
+          Take a street photo. Mistral classifies it, checks nearby reports, and writes a municipal finding.
         </p>
       </div>
 
@@ -71,6 +71,7 @@ export default function AnalyzePage() {
               Choose a different file
             </Button>
           </div>
+          {error && <p className="text-sm text-rw-severity-critical">{error.message}</p>}
         </div>
       )}
 

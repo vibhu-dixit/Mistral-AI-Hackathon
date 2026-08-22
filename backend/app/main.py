@@ -17,12 +17,14 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
 from app import config  # noqa: F401  loads .env
+from app import hazard_memory
 from app.analysis import analyze_observation
 from app.duplicates import lookup_nearby
 from app.geocode import reverse_geocode
 from app.geolocation import resolve_coordinates
 from app.models import Observation
 from app.persist import persist_analysis
+from app.present import present_analysis, present_row
 from app.repository import ObservationRepository
 from app.store import get_supabase
 from mistral_pipeline.images import prepare_jpeg
@@ -42,6 +44,42 @@ def _supabase_error(exc: Exception) -> str:
     if "could not find" in lowered or "does not exist" in lowered or "pgrst205" in lowered:
         return SCHEMA_HINT
     return message
+
+
+def _is_missing_schema(exc: Exception) -> bool:
+    lowered = str(exc).lower()
+    return "could not find" in lowered or "does not exist" in lowered or "pgrst205" in lowered
+
+
+def _merge_hazards(remote: list[dict]) -> list[dict]:
+    by_id = {row["id"]: row for row in remote if row.get("id")}
+    for row in hazard_memory.list_all():
+        if row.get("id") and row["id"] not in by_id:
+            by_id[row["id"]] = row
+    return sorted(by_id.values(), key=lambda item: str(item.get("detected_at") or ""), reverse=True)
+
+
+def _analysis_payload(result) -> dict:
+    payload = result.model_dump()
+    if not result.hazard_detected:
+        return payload
+    if not result.hazard_id:
+        result.hazard_id = str(uuid4())
+    row = present_analysis(result)
+    hazard_memory.remember(row)
+    payload.update(
+        {
+            "id": row["id"],
+            "hazard_id": row["id"],
+            "hazard_type": row["hazard_type"],
+            "created_at": row["detected_at"],
+            "detected_at": row["detected_at"],
+            "votes": row["votes"],
+            "target_category": row["target_category"],
+            "duplicate": row["duplicate"],
+        }
+    )
+    return payload
 
 app = FastAPI(
     title="RoadWatch API",
@@ -146,7 +184,7 @@ async def analyze_image(
             result.persisted = False
             result.persist_error = str(exc)
 
-    return result.model_dump()
+    return _analysis_payload(result)
 
 
 @app.post("/api/observations", response_model=Observation)
@@ -196,6 +234,7 @@ def get_observation(observation_id: str) -> Observation:
 
 @app.get("/api/hazards")
 def list_hazards(limit: int = 200):
+    remote: list[dict] = []
     try:
         client = get_supabase()
         result = (
@@ -205,40 +244,51 @@ def list_hazards(limit: int = 200):
             .limit(min(limit, 500))
             .execute()
         )
-        return {"hazards": result.data or []}
+        remote = [present_row(row) for row in (result.data or [])]
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
+        if not _is_missing_schema(exc) and "not configured" not in str(exc).lower():
+            if not hazard_memory.list_all():
+                raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
+    return {"hazards": _merge_hazards(remote)}
 
 
 @app.get("/api/hazards/{hazard_id}")
 def get_hazard(hazard_id: str):
+    remote = None
+    extras: dict = {"reports": [], "observations": []}
     try:
         client = get_supabase()
         result = client.table("hazards").select("*").eq("id", hazard_id).limit(1).execute()
         rows = result.data or []
-        if not rows:
-            raise HTTPException(status_code=404, detail="Hazard not found")
-        reports = (
-            client.table("reports").select("*").eq("hazard_id", hazard_id).order("created_at", desc=True).execute()
-        )
-        observations = (
-            client.table("observations").select("*").eq("hazard_id", hazard_id).order("observed_at", desc=True).execute()
-        )
-        return {
-            **rows[0],
-            "reports": reports.data or [],
-            "observations": observations.data or [],
-        }
-    except HTTPException:
-        raise
+        if rows:
+            remote = present_row(rows[0])
+            reports = (
+                client.table("reports").select("*").eq("hazard_id", hazard_id).order("created_at", desc=True).execute()
+            )
+            observations = (
+                client.table("observations").select("*").eq("hazard_id", hazard_id).order("observed_at", desc=True).execute()
+            )
+            extras = {
+                "reports": reports.data or [],
+                "observations": observations.data or [],
+            }
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
+        if not _is_missing_schema(exc) and "not configured" not in str(exc).lower() and remote is None:
+            cached = hazard_memory.get(hazard_id)
+            if cached is None:
+                raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
+    cached = hazard_memory.get(hazard_id)
+    row = remote or cached
+    if not row:
+        raise HTTPException(status_code=404, detail="Hazard not found")
+    return {**row, **extras}
 
 
 @app.patch("/api/hazards/{hazard_id}")
 def patch_hazard(hazard_id: str, body: StatusUpdate):
     if body.status not in ALLOWED_STATUSES:
         raise HTTPException(status_code=400, detail=f"status must be one of {sorted(ALLOWED_STATUSES)}")
+    remote = None
     try:
         client = get_supabase()
         result = (
@@ -247,48 +297,73 @@ def patch_hazard(hazard_id: str, body: StatusUpdate):
             .eq("id", hazard_id)
             .execute()
         )
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Hazard not found")
-        return result.data[0]
-    except HTTPException:
-        raise
+        if result.data:
+            remote = present_row(result.data[0])
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
+        if not _is_missing_schema(exc) and "not configured" not in str(exc).lower():
+            if hazard_memory.get(hazard_id) is None:
+                raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
+    cached = hazard_memory.update(hazard_id, status=body.status)
+    row = remote or cached
+    if not row:
+        raise HTTPException(status_code=404, detail="Hazard not found")
+    return row
 
 
 @app.post("/api/hazards/{hazard_id}/submit")
 def submit_report(hazard_id: str, body: SubmitBody | None = None):
     """Simulated municipal submission — does not call the real SF311 write API."""
+    row = hazard_memory.get(hazard_id)
     try:
         client = get_supabase()
         existing = client.table("hazards").select("*").eq("id", hazard_id).limit(1).execute()
-        if not existing.data:
-            raise HTTPException(status_code=404, detail="Hazard not found")
-        row = existing.data[0]
-        if row.get("hazard_type") == "collision" or row.get("severity") == "critical":
-            client.table("hazards").update({"status": "detected"}).eq("id", hazard_id).execute()
-            raise HTTPException(
-                status_code=409,
-                detail="Critical / collision reports stay in human review and are not auto-submitted.",
-            )
-        case_id = f"RW-SIM-{hazard_id[:8].upper()}"
-        client.table("hazards").update({"status": "reported"}).eq("id", hazard_id).execute()
-        reports = client.table("reports").select("id").eq("hazard_id", hazard_id).execute()
-        if reports.data:
-            client.table("reports").update(
-                {
-                    "status": "submitted_simulated",
-                    "external_case_id": case_id,
-                }
-            ).eq("hazard_id", hazard_id).execute()
-        return {
-            "ok": True,
-            "simulated": True,
-            "external_case_id": case_id,
-            "status": "reported",
-            "note": body.note if body else None,
-        }
+        if existing.data:
+            row = present_row(existing.data[0])
+            if row.get("hazard_type") == "collision" or row.get("severity") == "critical":
+                client.table("hazards").update({"status": "detected"}).eq("id", hazard_id).execute()
+                hazard_memory.update(hazard_id, status="detected")
+                raise HTTPException(
+                    status_code=409,
+                    detail="Critical / collision reports stay in human review and are not auto-submitted.",
+                )
+            case_id = f"RW-SIM-{hazard_id[:8].upper()}"
+            client.table("hazards").update({"status": "reported"}).eq("id", hazard_id).execute()
+            reports = client.table("reports").select("id").eq("hazard_id", hazard_id).execute()
+            if reports.data:
+                client.table("reports").update(
+                    {
+                        "status": "submitted_simulated",
+                        "external_case_id": case_id,
+                    }
+                ).eq("hazard_id", hazard_id).execute()
+            hazard_memory.update(hazard_id, status="reported")
+            return {
+                "ok": True,
+                "simulated": True,
+                "external_case_id": case_id,
+                "status": "reported",
+                "note": body.note if body else None,
+            }
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
+        if not _is_missing_schema(exc) and "not configured" not in str(exc).lower() and row is None:
+            raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Hazard not found")
+    if row.get("hazard_type") == "collision" or row.get("severity") == "critical":
+        hazard_memory.update(hazard_id, status="detected")
+        raise HTTPException(
+            status_code=409,
+            detail="Critical / collision reports stay in human review and are not auto-submitted.",
+        )
+    case_id = f"RW-SIM-{hazard_id[:8].upper()}"
+    hazard_memory.update(hazard_id, status="reported")
+    return {
+        "ok": True,
+        "simulated": True,
+        "external_case_id": case_id,
+        "status": "reported",
+        "note": body.note if body else None,
+    }

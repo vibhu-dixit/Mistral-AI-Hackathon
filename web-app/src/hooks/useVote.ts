@@ -22,7 +22,7 @@ function writeStoredVote(hazardId: string, direction: VoteDirection) {
 /**
  * No backend vote endpoint exists yet, so the user's own vote is tracked
  * client-side (per-browser, via localStorage) and layered on top of the
- * hazard's base `votes` count from the mock/real data. Swap this for a
+ * hazard's base `votes` count from the live hazard. Swap this for a
  * real mutation once the AI/Backend lead exposes a vote endpoint — the
  * component using this hook (VoteWidget) doesn't need to change.
  */

@@ -3,6 +3,7 @@ from __future__ import annotations
 from supabase import Client, create_client
 
 from app.config import supabase_key, supabase_url
+from app.present import to_db_hazard_type
 from mistral_pipeline.geo import haversine_m
 from mistral_pipeline.schemas import DuplicateMatch
 
@@ -27,7 +28,7 @@ def search_hazards(hazard_type: str, latitude: float, longitude: float, radius_m
         result = (
             client.table("hazards")
             .select("id,hazard_type,status,description,latitude,longitude,location_label")
-            .eq("hazard_type", hazard_type)
+            .eq("hazard_type", to_db_hazard_type(hazard_type))
             .neq("status", "resolved")
             .gte("latitude", latitude - delta)
             .lte("latitude", latitude + delta)
