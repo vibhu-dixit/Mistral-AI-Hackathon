@@ -351,7 +351,7 @@ export const DemoDedupe: React.FC = () => {
               </div>
               <div style={{ height: 24 }} />
               <div style={{ fontSize: 25, lineHeight: 1.5, color: C.text }}>
-                Before anything is written, the proximity check runs against existing RoadWatch
+                Before anything is written, the proximity check runs against existing Roadar
                 rows <em>and</em> the live SF311 feed. The new sighting is linked to the open
                 event instead of opening a second one.
               </div>

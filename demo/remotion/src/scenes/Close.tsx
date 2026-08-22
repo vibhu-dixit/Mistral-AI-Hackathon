@@ -114,7 +114,7 @@ export const Close: React.FC = () => {
         <div style={{ height: 40 }} />
 
         <Rise delay={34}>
-          <div style={{ fontSize: 34, fontWeight: 600, color: C.inkText }}>RoadWatch</div>
+          <div style={{ fontSize: 34, fontWeight: 600, color: C.inkText }}>Roadar</div>
           <div style={{ height: 12 }} />
           <div style={{ fontSize: 26, color: C.inkMuted }}>
             Mistral AI Hackathon · image-only MVP, live against a local stack

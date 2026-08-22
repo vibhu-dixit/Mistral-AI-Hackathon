@@ -183,7 +183,7 @@ export const Watermark: React.FC = () => {
         opacity: o * 0.75,
       }}
     >
-      RoadWatch · Mistral AI Hackathon
+      Roadar · Mistral AI Hackathon
     </div>
   );
 };

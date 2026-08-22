@@ -1,4 +1,4 @@
-# `demo/` — RoadWatch demo video
+# `demo/` — Roadar demo video
 
 A 2:33 Remotion video: end-to-end product demo first, market analysis second.
 
@@ -22,7 +22,7 @@ a scene, copy it across from `screenshots/` first.
 
 ## Watch it
 
-`remotion/out/roadwatch-demo.mp4` — 1920×1080, 30fps, 22 MB.
+`remotion/out/roadar-demo.mp4` — 1920×1080, 30fps, 22 MB.
 
 ## Work on it
 
@@ -30,7 +30,7 @@ a scene, copy it across from `screenshots/` first.
 cd demo/remotion
 npm install
 npm run dev        # Remotion Studio, scrub the timeline
-npm run render     # → out/roadwatch-demo.mp4
+npm run render     # → out/roadar-demo.mp4
 ```
 
 Every scene is also registered as its own composition (`scene-demo-pipeline`,
@@ -74,6 +74,25 @@ One gotcha: **capture `04-analyze-preview.png` against a production build**
 double-invokes the effect in `web-app/src/components/upload/MediaPreview.tsx`,
 which revokes the object URL before the image loads — the preview renders as a
 broken-image icon. Production is unaffected.
+
+### The navbar crop
+
+The app still ships as **RoadWatch**; the video is **Roadar**. So the three
+captures under `public/shots/` are cropped copies with the nav strip removed,
+rather than the raw files in `screenshots/`:
+
+| file | cut from top |
+|---|---|
+| `04-analyze-preview.png` | 159 px (3× capture) |
+| `07-hazard-detail.png` | 106 px (2× capture) |
+| `10-dashboard-map.png` | 106 px (2× capture) |
+
+That's 52 logical px in every case — the nav's height including its bottom
+border. The frames read as a scrolled page, which is why no scene depends on the
+site header.
+
+**When `web-app/` is renamed, drop the crop.** Re-capture the three shots and
+copy them across uncropped; the wordmark will then agree with the narration.
 
 ## If you re-record with narration
 

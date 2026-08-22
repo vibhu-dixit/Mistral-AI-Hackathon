@@ -63,7 +63,7 @@ export const SCENES = [
 export const TOTAL_FRAMES =
   SCENES.reduce((acc, sc) => acc + s(sc.sec), 0) - (SCENES.length - 1) * XF;
 
-export const RoadWatchDemo: React.FC = () => (
+export const RoadarDemo: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: C.bg }}>
     <TransitionSeries>
       {SCENES.map((scene, i) => (

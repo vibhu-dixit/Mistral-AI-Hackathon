@@ -178,7 +178,7 @@ export const MarketWedge: React.FC = () => {
               />
             ))}
 
-            {/* RoadWatch, upper right */}
+            {/* Roadar, upper right */}
             <div
               style={{
                 position: "absolute",
@@ -209,7 +209,7 @@ export const MarketWedge: React.FC = () => {
                   whiteSpace: "nowrap",
                 }}
               >
-                RoadWatch
+                Roadar
               </div>
             </div>
 
@@ -293,7 +293,7 @@ export const MarketStorm: React.FC = () => {
   const rows = [
     { label: "One coordinator, by hand", value: STORM.manualLimit, color: C.inkBorder, note: "12 min per event" },
     { label: "A storm week delivers", value: STORM.stormArrivals, color: C.critical, note: "≈3.2× calm volume" },
-    { label: "With RoadWatch", value: STORM.withRoadwatch, color: C.brandStart, note: "2 min per event", grad: true },
+    { label: "With Roadar", value: STORM.withRoadwatch, color: C.brandStart, note: "2 min per event", grad: true },
   ];
 
   return (
@@ -573,7 +573,7 @@ export const MarketValue: React.FC = () => {
               >
                 <Line label="Annual value to the city" value="$67.9K" delay={44} />
                 <div style={{ height: 22 }} />
-                <Line label="RoadWatch licence" value="$36K" delay={54} accent />
+                <Line label="Roadar licence" value="$36K" delay={54} accent />
                 <div
                   style={{
                     height: 1,
@@ -695,7 +695,7 @@ export const MarketPrivacy: React.FC = () => (
           },
           {
             t: "Maintenance purpose only",
-            d: "RoadWatch never contacts emergency services. Collisions are flagged for human review and stop there.",
+            d: "Roadar never contacts emergency services. Collisions are flagged for human review and stop there.",
           },
         ].map((c, i) => (
           <Rise key={c.t} delay={18 + i * 10} style={{ flex: 1 }}>

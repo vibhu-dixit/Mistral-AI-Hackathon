@@ -47,7 +47,7 @@ export const Title: React.FC = () => {
 
         <Rise delay={8}>
           <div style={{ fontSize: 128, fontWeight: 700, letterSpacing: -5, lineHeight: 1 }}>
-            RoadWatch
+            Roadar
           </div>
         </Rise>
 

@@ -1,10 +1,10 @@
 {
-  "name": "roadwatch-demo-video",
+  "name": "roadar-demo-video",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "remotion studio",
-    "render": "remotion render RoadWatchDemo out/roadwatch-demo.mp4 --concurrency=4",
+    "render": "remotion render RoadarDemo out/roadar-demo.mp4 --concurrency=4",
     "still": "remotion still"
   },
   "dependencies": {

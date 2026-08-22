@@ -9,7 +9,9 @@ export const PIPELINE = [
   { name: "see", label: "Classify the hazard", model: "mistral-small-latest", ms: 2976 },
   { name: "ocr", label: "Read text in frame", model: "mistral-ocr-latest", ms: 1015 },
   { name: "locate", label: "Resolve the street", model: "nominatim", ms: 225 },
-  { name: "check", label: "Check for duplicates", model: "sf311 + roadwatch", ms: 1837 },
+  // `model` here reads "sf311 + roadar" ahead of the backend: app/main.py still
+  // emits "sf311 + roadwatch" for this stage. Rename it there and this is verbatim.
+  { name: "check", label: "Check for duplicates", model: "sf311 + roadar", ms: 1837 },
   { name: "act", label: "Write the civic report", model: "mistral-small-latest", ms: 1214 },
 ] as const;
 
@@ -62,7 +64,7 @@ export const STORM = {
   withRoadwatch: 75,
   hoursReturned: 403,
   manualMinutes: 12,
-  roadwatchMinutes: 2,
+  roadarMinutes: 2,
   windowHours: 2.5,
 } as const;
 

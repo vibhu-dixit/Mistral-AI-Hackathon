@@ -1,13 +1,13 @@
 import React from "react";
 import { Composition } from "remotion";
-import { RoadWatchDemo, SCENES, TOTAL_FRAMES } from "./Video";
+import { RoadarDemo, SCENES, TOTAL_FRAMES } from "./Video";
 import { FPS, H, W, s } from "./theme";
 
 export const RemotionRoot: React.FC = () => (
   <>
     <Composition
-      id="RoadWatchDemo"
-      component={RoadWatchDemo}
+      id="RoadarDemo"
+      component={RoadarDemo}
       durationInFrames={TOTAL_FRAMES}
       fps={FPS}
       width={W}
