@@ -1,17 +1,13 @@
 # Agent context — AI/ML Integration (Mistral)
 
-You're working on severity assessment from pothole photos and the
-location → responsible-party mapping, exposed as `POST /analyze` (see
-`../docs/API_CONTRACT.md`).
+Image-only pipeline. Do **not** add video or frame sampling.
 
-- The location → responsible-party mapping is the hard part of this whole
-  project. Default to a lookup table (or GIS boundary data if available)
-  rather than trying to get an LLM to reliably reason its way to a
-  department name — treat AI reasoning as a fallback, not the primary path.
-- This service can be built and tested standalone against sample photo
-  URLs + coordinates — it doesn't need a live backend to develop against.
-- Never commit a Mistral API key. Use `.env` (already gitignored at the
-  repo root) and document required env vars in this folder's `README.md`.
-- If the `/analyze` request/response shape needs to change, update
-  `../docs/API_CONTRACT.md` in the same change — the backend calls this
-  endpoint and builds against that file.
+Package: `mistral_pipeline`
+
+- `vision.py` — multimodal hazard classification (JSON)
+- `ocr.py` — Mistral OCR, street-name signals
+- `agent.py` — civic routing + municipal report
+- `pipeline.py` — SEE → OCR → CHECK → ACT
+- `routing.py` — SF311 category lookup table (primary), agent is the writer not the source of truth for department names
+
+Never commit `MISTRAL_API_KEY`. Keep prompts conservative: normal cracks, wet pavement, and parked cars are not hazards. Collisions are human-review only — never dispatch emergency services.
