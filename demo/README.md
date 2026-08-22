@@ -49,11 +49,22 @@ seconds; `TOTAL_FRAMES` recomputes itself, including the transition overlap.
 `src/data.ts` is the single source for everything on screen. Two origins:
 
 **Live run against the local stack, 2026-08-22.** `PIPELINE`, `RESULT`,
-`NEGATIVE` and `AGENT_LOOP` are verbatim from `POST /analyze-image` and
-`GET /agent-loop` with `backend` on `:8010`. The per-stage millisecond timings
-(2976 / 1015 / 225 / 1837 / 1214 ms) are that run's real `pipeline` array, not
-illustrative numbers. Inputs were `imgs/IMG_5582.webp` (hazard) and
+`PERMIT`, `NEGATIVE` and `AGENT_LOOP` are verbatim from `POST /analyze-image`
+and `GET /agent-loop` with `backend` on `:8010`. The per-stage millisecond
+timings (2847 / 449 / 114 / 662 / 1708 / 1346 ms) are that run's real `pipeline`
+array, not illustrative numbers. Inputs were `imgs/IMG_5582.webp` (hazard) and
 `imgs/IMG_5579.webp` (clean street control).
+
+Re-captured after merging `origin/main`, which added the street-permit lookup.
+That made the trace **six** stages, not five, and the generated report now names
+the contractor holding the nearby excavation permit. Only three of the six are
+Mistral calls (`see`, `ocr`, `act`) — the pipeline headline says so rather
+than calling all six "model calls".
+
+Dedupe is keyed on `hazard_type` (`app/duplicates.py` → `search_hazards`), so a
+re-upload only links when the classifier returns the same type. Verified: the
+same photo twice at the same coordinates returns `duplicate: true`,
+`linked_to_existing: true`, `distance_meters: 0.0`.
 
 **Calafai strategy analysis** (`CAL-ROADWATCH-2026-AUG-22`). `STORM`, `MARKET`,
 `VALUE` and `LANDSCAPE`. The deck's own slide 18 names what to use for a
@@ -83,16 +94,29 @@ rather than the raw files in `screenshots/`:
 
 | file | cut from top |
 |---|---|
-| `04-analyze-preview.png` | 159 px (3× capture) |
-| `07-hazard-detail.png` | 106 px (2× capture) |
-| `10-dashboard-map.png` | 106 px (2× capture) |
+| `04-analyze-preview.png` | 165 px (3× capture) |
+| `07-hazard-detail.png` | 110 px (2× capture) |
+| `10-dashboard-map.png` | 110 px (2× capture) |
 
-That's 52 logical px in every case — the nav's height including its bottom
-border. The frames read as a scrolled page, which is why no scene depends on the
+That's 55 logical px in every case — the nav's height including its gradient rule
+and bottom border. Re-measure after any nav change; the numbers moved once
+already. The frames read as a scrolled page, which is why no scene depends on the
 site header.
 
 **When `web-app/` is renamed, drop the crop.** Re-capture the three shots and
 copy them across uncropped; the wordmark will then agree with the narration.
+
+### Redaction
+
+`07-hazard-detail.png` has the contractor's phone number painted out. It comes
+from SF's public street-use permit dataset and the app renders it, but a video
+that may be published shouldn't broadcast a working number, and the demo reads
+fine without it. `data.ts` deliberately does not carry the value either.
+
+### The dashboard moved
+
+`/dashboard` no longer exists — the dashboard is the home page. The `Browser`
+frame in `DemoMap` says `localhost:3000` for that reason. Don't "fix" it back.
 
 ## If you re-record with narration
 

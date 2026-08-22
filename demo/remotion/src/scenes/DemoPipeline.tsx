@@ -8,8 +8,8 @@ import { BRAND_GRADIENT, C } from "../theme";
 
 
 /** Frames each stage lights up on. Paced so the whole trace lands in ~9s. */
-const STAGE_AT = [24, 46, 68, 84, 106];
-const DONE_AT = 128;
+const STAGE_AT = [20, 40, 58, 74, 92, 112];
+const DONE_AT = 134;
 
 const StageRow: React.FC<{
   index: number;
@@ -115,7 +115,7 @@ export const DemoPipeline: React.FC = () => {
             <Eyebrow>Live run · POST /analyze-image</Eyebrow>
             <div style={{ height: 18 }} />
             <Headline size={62}>
-              One photo. <Grad>Five model calls.</Grad>
+              One photo. <Grad>Six steps, three models.</Grad>
             </Headline>
           </div>
           <Photo src="imgs/IMG_5582.webp" width={330} height={220} label="imgs/IMG_5582.webp" />
@@ -123,7 +123,7 @@ export const DemoPipeline: React.FC = () => {
 
         <div style={{ height: 56 }} />
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {PIPELINE.map((stage, i) => (
             <StageRow
               key={stage.name}
@@ -151,7 +151,7 @@ export const DemoPipeline: React.FC = () => {
           }}
         >
           <div style={{ fontSize: 30, color: C.muted }}>
-            Photo &rarr; deduplicated, routed, report-ready finding
+            Photo &rarr; located, deduplicated, routed, contractor matched
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
             <Counter

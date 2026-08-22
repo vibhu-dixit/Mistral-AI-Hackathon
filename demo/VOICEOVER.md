@@ -56,7 +56,7 @@ instead of letting drift compound across one long take.
 
 ### 5 · demo-pipeline
 
-> This is a real run. Vision classifies the hazard. OCR reads the text. We resolve the street, check for duplicates, and an agent writes the report. Seven point three seconds.
+> A real run. Vision classifies the hazard. OCR reads the text. We resolve the street, find open street work, check duplicates, and write the report. Seven point one seconds.
 
 ### 6 · demo-agent-loop
 
@@ -64,15 +64,15 @@ instead of letting drift compound across one long take.
 
 ### 7 · demo-result
 
-> The photo comes back as a typed record. Road debris, urgent, ninety-eight percent confidence, Stevenson Street, priority eighty-five out of a hundred.
+> The photo comes back as a typed record. Road debris, urgent, ninety-eight percent confidence, Stevenson Street, priority ninety out of a hundred.
 
 ### 8 · demo-report
 
-> Then it's routed to San Francisco Public Works. The department comes from a lookup table, not the model. Critical hazards never auto-submit.
+> Routed to San Francisco Public Works, from a lookup table, not the model. And it found CableCom holding an active excavation permit nearby.
 
 ### 9 · demo-dedupe
 
-> A second report at the same spot doesn't become a second ticket. The proximity check runs first, and the sighting links to the open event.
+> A second report at the same spot doesn't become a second ticket. It's matched on type and proximity, then linked to the open event.
 
 ### 10 · demo-negative
 

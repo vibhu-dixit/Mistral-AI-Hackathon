@@ -2,20 +2,29 @@
  * Every number in this file came out of a real run against the local stack on
  * 2026-08-22, or out of the Calafai strategy analysis (CAL-ROADWATCH-2026-AUG-22).
  * Nothing here is invented for the video.
+ *
+ * Re-captured after merging origin/main, which added the street-permit lookup —
+ * hence six stages, not five, and a report that names the contractor.
  */
 
 /** Live `pipeline` trace from POST /analyze-image on imgs/IMG_5582.webp. */
 export const PIPELINE = [
-  { name: "see", label: "Classify the hazard", model: "mistral-small-latest", ms: 2976 },
-  { name: "ocr", label: "Read text in frame", model: "mistral-ocr-latest", ms: 1015 },
-  { name: "locate", label: "Resolve the street", model: "nominatim", ms: 225 },
+  { name: "see", label: "Classify the hazard", model: "mistral-small-latest", ms: 2847 },
+  { name: "ocr", label: "Read text in frame", model: "mistral-ocr-latest", ms: 449 },
+  { name: "locate", label: "Resolve the street", model: "nominatim", ms: 114 },
+  { name: "permit", label: "Find open street work", model: "sfgov:x8nh-xzn6", ms: 662 },
   // `model` here reads "sf311 + roadar" ahead of the backend: app/main.py still
   // emits "sf311 + roadwatch" for this stage. Rename it there and this is verbatim.
-  { name: "check", label: "Check for duplicates", model: "sf311 + roadar", ms: 1837 },
-  { name: "act", label: "Write the civic report", model: "mistral-small-latest", ms: 1214 },
+  { name: "check", label: "Check for duplicates", model: "sf311 + roadar", ms: 1708 },
+  { name: "act", label: "Write the civic report", model: "mistral-small-latest", ms: 1346 },
 ] as const;
 
-export const PIPELINE_TOTAL_MS = PIPELINE.reduce((a, b) => a + b.ms, 0); // 7267
+export const PIPELINE_TOTAL_MS = PIPELINE.reduce((a, b) => a + b.ms, 0); // 7126
+
+/** How many of those six stages are actually Mistral calls. */
+export const MODEL_CALL_COUNT = PIPELINE.filter((s) =>
+  s.model.startsWith("mistral"),
+).length; // 3
 
 /** The seven-step agent loop exposed at GET /agent-loop. */
 export const AGENT_LOOP = [
@@ -33,19 +42,32 @@ export const RESULT = {
   hazardType: "Road debris",
   severity: "Urgent",
   confidence: 0.98,
-  priorityScore: 85,
+  priorityScore: 90,
   laneImpact: "partial",
   locationLabel: "Stevenson Street, South of Market",
   locationConfidence: "high",
   ocrText: "www.usps.com",
   civicCategory: "Street and Sidewalk Cleaning",
   targetAgency: "San Francisco Public Works via SF311",
-  status: "report_ready",
-  humanReviewRequired: false,
-  description:
-    "A detached vehicle underbody panel or splash guard lying on the asphalt.",
+  status: "detected",
+  humanReviewRequired: true,
+  description: "Remove the detached tire and wheel rim from the travel lane.",
   report:
-    "A detached vehicle underbody panel or splash guard is lying on the asphalt on Stevenson Street, South of Market. This debris poses a potential hazard to passing vehicles and could cause damage or be a tripping hazard for cyclists or pedestrians.",
+    "A detached tire and wheel rim are obstructing part of the travel lane on Stevenson Street. The debris poses a hazard to traffic and should be removed promptly. The nearby active street permit (Excavation #26EXC-03895) is managed by CableCom, who may assist with coordination if needed. Contact SF311 to report.",
+} as const;
+
+/**
+ * The street-use permit the `permit` stage matched, from SF's open dataset
+ * (x8nh-xzn6). The contractor's phone is in the response and on the hazard page;
+ * it is redacted in the capture and deliberately not repeated here.
+ */
+export const PERMIT = {
+  street: "STEVENSON ST",
+  contractor: "CableCom",
+  number: "26EXC-03895",
+  type: "Excavation",
+  status: "ACTIVE",
+  distanceM: 226,
 } as const;
 
 /** The clean-street control run — same endpoint, same prompt, no hazard. */

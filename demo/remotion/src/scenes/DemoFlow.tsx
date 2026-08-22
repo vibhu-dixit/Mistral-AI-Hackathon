@@ -13,7 +13,7 @@ import {
   useEnter,
 } from "../components/base";
 import { Browser, Phone, Photo } from "../components/Frames";
-import { AGENT_LOOP, NEGATIVE, RESULT } from "../data";
+import { AGENT_LOOP, NEGATIVE, PERMIT, RESULT } from "../data";
 import { MONO } from "../font";
 import { BRAND_GRADIENT, C } from "../theme";
 
@@ -176,14 +176,15 @@ export const DemoResult: React.FC = () => (
             <Field k="location_confidence" v="high" delay={36} />
             <Field k="ocr_text" v={`"${RESULT.ocrText}"`} delay={42} />
             <Field k="lane_impact" v="partial" delay={48} />
-            <Field k="priority_score" v="85 / 100" delay={54} accent />
+            <Field k="priority_score" v="90 / 100" delay={54} accent />
             <Field k="civic_category" v={RESULT.civicCategory} delay={60} />
-            <Field k="status" v="report_ready" delay={66} />
+            <Field k="status" v="detected" delay={66} />
+            <Field k="human_review_required" v="true" delay={72} accent />
           </Card>
         </div>
 
         <div style={{ flex: 1 }}>
-          <Browser src="shots/07-hazard-detail.png" width={880} delay={20} url="localhost:3000/hazard/b4f732d5" />
+          <Browser src="shots/07-hazard-detail.png" width={880} delay={20} url="localhost:3000/hazard/693a8c67" />
         </div>
       </div>
     </AbsoluteFill>
@@ -231,8 +232,11 @@ export const DemoReport: React.FC = () => {
                 <Pill color={C.urgent} bg="#fff2e2">
                   Urgent
                 </Pill>
+                <Pill color={C.muted} bg="#efece4">
+                  Detected
+                </Pill>
                 <Pill color={C.navy} bg="#e7eefa">
-                  Report ready
+                  Human review
                 </Pill>
               </div>
             </Card>
@@ -245,16 +249,29 @@ export const DemoReport: React.FC = () => {
                 <div style={{ fontSize: 28, fontWeight: 600, lineHeight: 1.3 }}>
                   {RESULT.targetAgency}
                 </div>
+                <div style={{ fontSize: 19, color: C.muted, marginTop: 12, lineHeight: 1.4 }}>
+                  From the SF311 lookup table — the model writes the prose, it doesn&rsquo;t
+                  invent the department.
+                </div>
               </Card>
             </Rise>
             <Rise delay={36}>
-              <Card style={{ padding: 30 }}>
+              <Card style={{ padding: 30, borderColor: C.brandStart }}>
                 <div style={{ fontSize: 20, color: C.muted, marginBottom: 12 }}>
-                  Category source
+                  Open street-use permit within {PERMIT.distanceM} m
                 </div>
-                <div style={{ fontSize: 24, lineHeight: 1.4 }}>
-                  SF311 lookup table — the model writes the prose, it doesn&rsquo;t invent the
-                  department.
+                <div style={{ fontSize: 28, fontWeight: 600, lineHeight: 1.3 }}>
+                  {PERMIT.contractor}
+                </div>
+                <div
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 21,
+                    color: C.muted,
+                    marginTop: 10,
+                  }}
+                >
+                  {PERMIT.number} · {PERMIT.type} · {PERMIT.status}
                 </div>
               </Card>
             </Rise>
@@ -305,14 +322,14 @@ export const DemoDedupe: React.FC = () => {
             src="imgs/IMG_5582.webp"
             width={370}
             height={250}
-            label="upload 1 · 37.7793, −122.4132"
+            label="upload 1 · new event"
             delay={12}
           />
           <Photo
-            src="imgs/IMG_5583.webp"
+            src="imgs/IMG_5582.webp"
             width={370}
             height={250}
-            label="upload 2 · same coordinates"
+            label="upload 2 · same hazard, 0 m"
             delay={22}
           />
 
@@ -351,9 +368,9 @@ export const DemoDedupe: React.FC = () => {
               </div>
               <div style={{ height: 24 }} />
               <div style={{ fontSize: 25, lineHeight: 1.5, color: C.text }}>
-                Before anything is written, the proximity check runs against existing Roadar
-                rows <em>and</em> the live SF311 feed. The new sighting is linked to the open
-                event instead of opening a second one.
+                Before anything is written, the hazard is matched on type and proximity
+                against existing Roadar rows <em>and</em> the live SF311 feed. The second
+                upload returned <code>linked_to_existing: true</code> — no new row.
               </div>
             </Card>
           </div>
@@ -446,7 +463,7 @@ export const DemoMap: React.FC = () => (
 
       <div style={{ height: 40 }} />
       <div style={{ display: "flex", justifyContent: "center" }}>
-        <Browser src="shots/10-dashboard-map.png" width={1420} delay={10} url="localhost:3000/dashboard" />
+        <Browser src="shots/10-dashboard-map.png" width={1420} delay={10} url="localhost:3000" />
       </div>
     </AbsoluteFill>
   </SceneShell>
