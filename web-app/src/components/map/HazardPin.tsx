@@ -30,6 +30,13 @@ export function HazardPin({ hazard, onSelect }: HazardPinProps) {
         <strong>{HAZARD_TYPE_LABEL[hazard.hazard_type]}</strong>
         <br />
         {hazard.location_label}
+        {hazard.agent ? (
+          <>
+            <br />
+            {hazard.agent}
+            {hazard.agent_phone ? ` · ${hazard.agent_phone}` : ""}
+          </>
+        ) : null}
       </Popup>
     </CircleMarker>
   );

@@ -52,6 +52,8 @@ def present_analysis(analysis: HazardAnalysis, *, detected_at: str | None = None
         "status": analysis.status or "detected",
         "detected_at": when,
         "votes": 0,
+        "agent": analysis.agent,
+        "agent_phone": analysis.agent_phone,
     }
 
 
@@ -75,4 +77,6 @@ def present_row(row: dict[str, Any]) -> dict[str, Any]:
         "status": row.get("status") or "detected",
         "detected_at": row.get("detected_at") or row.get("created_at") or datetime.now(timezone.utc).isoformat(),
         "votes": int(row.get("votes") or 0),
+        "agent": row.get("agent"),
+        "agent_phone": row.get("agent_phone") or row.get("agentphone"),
     }

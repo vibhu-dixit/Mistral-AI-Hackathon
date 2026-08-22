@@ -66,5 +66,12 @@ export function mapRawHazard(raw: Record<string, unknown>): Hazard {
     status: mapStatus(raw.status),
     detected_at: (raw.detected_at as string) ?? (raw.created_at as string) ?? new Date().toISOString(),
     votes: Number(raw.votes ?? 0),
+    agent: typeof raw.agent === "string" && raw.agent.trim() ? raw.agent : null,
+    agent_phone:
+      typeof raw.agent_phone === "string" && raw.agent_phone.trim()
+        ? raw.agent_phone
+        : typeof raw.agentphone === "string" && raw.agentphone.trim()
+          ? raw.agentphone
+          : null,
   };
 }

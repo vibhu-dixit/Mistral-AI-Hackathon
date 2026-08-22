@@ -28,6 +28,8 @@ Returned by `POST /analyze-image` and stored on `hazards`.
   "ai_reasoning": "Defect occupies the vehicle wheel path and appears deep.",
   "civic_category": "Street Defect",
   "target_agency": "San Francisco Public Works via SF311",
+  "agent": "Esquivel Grading & Paving, Inc.",
+  "agent_phone": "415-468 5700",
   "human_review_required": false,
   "status": "report_ready",
   "hazard_id": "uuid",
@@ -112,6 +114,8 @@ Response:
   "generated_report": "string | null",
   "duplicate": false,
   "hazard_id": "uuid | null",
+  "agent": "string | null",
+  "agent_phone": "string | null",
   "created_at": "ISO 8601"
 }
 ```
@@ -126,8 +130,11 @@ This endpoint runs the same Mistral pipeline as `POST /analyze-image`.
 
 `pipeline` on the response is the demo trace:
 
-1. **locate** — GPS / EXIF + Nominatim
+1. **locate** — GPS / EXIF + Nominatim road name
 2. **see** — Mistral vision (`mistral-small-latest`)
 3. **ocr** — Mistral OCR (`mistral-ocr-latest`)
 4. **check** — nearby RoadWatch rows + SF311
-5. **act** — Mistral agent writes category, priority, municipal report
+5. **permit** — SF Active Street Use Permits SODA (`x8nh-xzn6`) → `agent`, `agent_phone`
+6. **act** — Mistral agent writes category, priority, municipal report
+
+`agent` / `agent_phone` are the contractor on the matching street-use permit (null when GPS is missing or no permit matches). The locate step also includes these fields.

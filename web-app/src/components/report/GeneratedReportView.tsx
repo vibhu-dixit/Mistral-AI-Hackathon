@@ -17,6 +17,27 @@ export function GeneratedReportView({ hazard }: { hazard: Hazard }) {
       </h2>
 
       <p className="leading-relaxed text-rw-text">{hazard.generated_report}</p>
+
+      {(hazard.agent || hazard.agent_phone) && (
+        <dl className="grid gap-2 border-t border-rw-border pt-4 text-sm">
+          {hazard.agent ? (
+            <div>
+              <dt className="text-rw-text-muted">Contractor / agent</dt>
+              <dd className="text-rw-text">{hazard.agent}</dd>
+            </div>
+          ) : null}
+          {hazard.agent_phone ? (
+            <div>
+              <dt className="text-rw-text-muted">Agent phone</dt>
+              <dd className="text-rw-text">
+                <a className="underline decoration-rw-border underline-offset-2" href={`tel:${hazard.agent_phone}`}>
+                  {hazard.agent_phone}
+                </a>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      )}
     </Card>
   );
 }

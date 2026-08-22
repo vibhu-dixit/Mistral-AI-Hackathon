@@ -96,10 +96,20 @@ def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bo
                 "civic_category": analysis.civic_category,
                 "target_agency": analysis.target_agency,
                 "generated_report": analysis.generated_report,
+                "agent": analysis.agent,
+                "agent_phone": analysis.agent_phone,
                 "created_at": now,
                 "updated_at": now,
             }
-            client.table("hazards").insert(payload).execute()
+            try:
+                client.table("hazards").insert(payload).execute()
+            except Exception as insert_exc:
+                if "agent" in payload and ("column" in str(insert_exc).lower() or "pgrst" in str(insert_exc).lower() or "schema" in str(insert_exc).lower()):
+                    payload.pop("agent", None)
+                    payload.pop("agent_phone", None)
+                    client.table("hazards").insert(payload).execute()
+                else:
+                    raise insert_exc
             client.table("observations").insert(
                 {
                     "hazard_id": hazard_id,

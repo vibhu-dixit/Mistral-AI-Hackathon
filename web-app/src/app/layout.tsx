@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     "RoadWatch turns street photos and video into structured, prioritized infrastructure reports, powered by Mistral.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"

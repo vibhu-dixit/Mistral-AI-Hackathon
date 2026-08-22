@@ -22,6 +22,7 @@ from app.analysis import analyze_observation
 from app.duplicates import lookup_nearby
 from app.geocode import reverse_geocode
 from app.geolocation import resolve_coordinates
+from app.street_permits import lookup_street_permit
 from app.models import Observation
 from app.persist import persist_analysis
 from app.present import present_analysis, present_row
@@ -146,6 +147,8 @@ def analysis_schema() -> dict:
         "duplicate": False,
         "target_category": "",
         "generated_report": "",
+        "agent": None,
+        "agent_phone": None,
     }
 
 
@@ -172,6 +175,7 @@ async def analyze_image(
             longitude=longitude,
             reverse_geocode=reverse_geocode,
             lookup_nearby=lookup_nearby,
+            lookup_permit=lookup_street_permit,
         )
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

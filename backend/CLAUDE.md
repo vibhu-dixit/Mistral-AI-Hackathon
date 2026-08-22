@@ -6,4 +6,5 @@ Image-only RoadWatch API. Do **not** add video frame extraction.
 - AI logic lives in `../ai-service/mistral_pipeline` — import it, don't copy prompts into this folder.
 - Endpoints: `POST /analyze-image`, `GET /api/hazards`, `GET /health`
 - Duplicate checks: local `hazards` table + SF311 SODA (`vw6y-z8j6`)
+- Street contractor: Active Street Use Permits SODA (`x8nh-xzn6`) → `agent`, `agent_phone`
 - Persist failures must not hide a successful Mistral analysis — return the JSON and set `persist_error`.

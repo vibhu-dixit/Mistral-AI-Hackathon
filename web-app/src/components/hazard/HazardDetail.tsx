@@ -1,4 +1,4 @@
-import { Copy, MapPin } from "lucide-react";
+import { Copy, MapPin, Phone, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import { AIReasoningBlock } from "@/components/hazard/AIReasoningBlock";
@@ -72,6 +72,28 @@ export function HazardDetail({ hazard }: { hazard: Hazard }) {
           <dt className="text-rw-text-muted">Priority score</dt>
           <dd className="text-rw-text">{hazard.priority_score}/100</dd>
         </div>
+        {hazard.agent ? (
+          <div>
+            <dt className="flex items-center gap-1 text-rw-text-muted">
+              <UserRound className="h-3.5 w-3.5" />
+              Contractor
+            </dt>
+            <dd className="text-rw-text">{hazard.agent}</dd>
+          </div>
+        ) : null}
+        {hazard.agent_phone ? (
+          <div>
+            <dt className="flex items-center gap-1 text-rw-text-muted">
+              <Phone className="h-3.5 w-3.5" />
+              Agent phone
+            </dt>
+            <dd className="text-rw-text">
+              <a className="underline decoration-rw-border underline-offset-2" href={`tel:${hazard.agent_phone}`}>
+                {hazard.agent_phone}
+              </a>
+            </dd>
+          </div>
+        ) : null}
       </dl>
 
       <AIReasoningBlock text={hazard.ai_reasoning} />

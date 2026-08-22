@@ -24,6 +24,8 @@ def test_present_row_uses_ui_field_names() -> None:
             "status": "report_ready",
             "created_at": "2026-08-22T00:00:00Z",
             "priority_score": 70,
+            "agent": "Esquivel Grading & Paving, Inc.",
+            "agent_phone": "415-468 5700",
         }
     )
     assert row["hazard_type"] == "debris"
@@ -31,3 +33,5 @@ def test_present_row_uses_ui_field_names() -> None:
     assert row["detected_at"] == "2026-08-22T00:00:00Z"
     assert row["duplicate"] is False
     assert row["votes"] == 0
+    assert row["agent"] == "Esquivel Grading & Paving, Inc."
+    assert row["agent_phone"] == "415-468 5700"
