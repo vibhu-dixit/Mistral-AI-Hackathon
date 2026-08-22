@@ -31,7 +31,12 @@ SUPABASE_ANON_KEY=...
 
 Optional: `SUPABASE_SERVICE_ROLE_KEY` / `sb_secret_...` for writes that bypass RLS.
 
-If you used the publishable key only, run `supabase/schema.sql`, `supabase/rls-writes.sql`, and `backend/supabase/001_observations.sql`.
+If you used the publishable key only, create the tables once in the Supabase SQL Editor (dashboard login is enough — no database password):
+
+1. Open [SQL Editor](https://supabase.com/dashboard/project/yjwugyozhpfeqblnsolk/sql/new)
+2. Paste `supabase/apply_all.sql` and Run
+
+That file is `schema.sql` + `rls-writes.sql` + `backend/supabase/001_observations.sql`.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests

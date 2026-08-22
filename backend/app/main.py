@@ -30,6 +30,18 @@ from mistral_pipeline.pipeline import analyze_photo
 
 MAX_IMAGE_BYTES = 12 * 1024 * 1024
 ALLOWED_STATUSES = {"detected", "report_ready", "reported", "in_progress", "resolved"}
+SCHEMA_HINT = (
+    "Supabase table public.hazards is missing. In the project SQL Editor "
+    "(dashboard login is enough — no database password), run supabase/apply_all.sql once."
+)
+
+
+def _supabase_error(exc: Exception) -> str:
+    message = str(exc)
+    lowered = message.lower()
+    if "could not find" in lowered or "does not exist" in lowered or "pgrst205" in lowered:
+        return SCHEMA_HINT
+    return message
 
 app = FastAPI(
     title="RoadWatch API",
@@ -195,7 +207,7 @@ def list_hazards(limit: int = 200):
         )
         return {"hazards": result.data or []}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
 
 
 @app.get("/api/hazards/{hazard_id}")
@@ -220,7 +232,7 @@ def get_hazard(hazard_id: str):
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
 
 
 @app.patch("/api/hazards/{hazard_id}")
@@ -241,7 +253,7 @@ def patch_hazard(hazard_id: str, body: StatusUpdate):
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
 
 
 @app.post("/api/hazards/{hazard_id}/submit")
@@ -279,4 +291,4 @@ def submit_report(hazard_id: str, body: SubmitBody | None = None):
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail=_supabase_error(exc)) from exc
