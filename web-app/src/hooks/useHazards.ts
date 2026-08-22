@@ -12,5 +12,7 @@ export function useHazards(filters?: HazardFilters) {
   return useQuery({
     queryKey: ["hazards", filters],
     queryFn: () => listHazards(filters),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }

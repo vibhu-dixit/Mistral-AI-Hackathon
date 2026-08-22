@@ -34,6 +34,15 @@ export interface Hazard {
   status: HazardStatus;
   detected_at: string; // ISO 8601
   votes: number; // net score (upvotes - downvotes) from citizen prioritization
+  road_author?: string | null; // who built/maintains the road, e.g. "SF Public Works" — not always known
+  road_constructed_at?: string | null; // ISO date the road was built, if on record
+  agent: string; // SF street-use permit contractor; blank if none
+  agent_phone: string;
+  permit_street_name: string;
+  permit_number: string;
+  permit_type: string;
+  permit_status: string;
+  permit_distance_m?: number;
 }
 
 export interface AnalyzeResponse {

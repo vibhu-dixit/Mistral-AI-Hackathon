@@ -18,6 +18,7 @@ from mistral_pipeline.schemas import (
     HazardAnalysis,
     OcrResult,
     PipelineStep,
+    StreetPermitMatch,
     VisionResult,
 )
 
@@ -34,6 +35,8 @@ def team_contract(analysis: HazardAnalysis) -> dict[str, Any]:
         "duplicate": analysis.duplicate,
         "target_category": analysis.target_category,
         "generated_report": analysis.generated_report,
+        "agent": analysis.agent or "",
+        "agent_phone": analysis.agent_phone or "",
     }
 
 
@@ -49,6 +52,7 @@ def build_agent_loop(
     duplicate: bool,
     routing: dict[str, str],
     status: str,
+    street_permit: StreetPermitMatch | None = None,
 ) -> dict[str, Any]:
     return {
         "see": {
@@ -72,6 +76,9 @@ def build_agent_loop(
             "ocr_text": None if ocr is None else ocr.text,
             "location_label": None if agent is None else agent.location_label,
             "location_confidence": None if agent is None else agent.location_confidence,
+            "street_name": "" if street_permit is None else (street_permit.street_name or ""),
+            "agent": "" if street_permit is None else (street_permit.agent or ""),
+            "agent_phone": "" if street_permit is None else (street_permit.agent_phone or ""),
         },
         "check": {
             "question": "Has it already been reported?",
@@ -140,7 +147,20 @@ def _empty_analysis(steps: list[PipelineStep], **kwargs: Any) -> HazardAnalysis:
 
 
 NearbyLookup = Callable[[str, float, float], list[DuplicateMatch]]
-ReverseGeocode = Callable[[float, float], str | None]
+ReverseGeocode = Callable[[float, float], Any]
+PermitLookup = Callable[..., StreetPermitMatch | None]
+
+
+def _geocode_parts(value: Any) -> tuple[str | None, str | None]:
+    if isinstance(value, dict):
+        label = value.get("label") or value.get("display_name")
+        label = str(label).strip() if label else None
+        road = value.get("road_normalized") or value.get("road") or label
+        road = str(road).strip() if road else None
+        return label, road
+    if isinstance(value, str) and value.strip():
+        return value.strip(), value.strip()
+    return None, None
 
 
 def analyze_photo(
@@ -150,10 +170,13 @@ def analyze_photo(
     *,
     reverse_geocode: ReverseGeocode | None = None,
     lookup_nearby: NearbyLookup | None = None,
+    lookup_permit: PermitLookup | None = None,
 ) -> HazardAnalysis:
     steps: list[PipelineStep] = []
     nearby: list[DuplicateMatch] = []
     geocode_label: str | None = None
+    road_name: str | None = None
+    street_permit: StreetPermitMatch | None = None
 
     _jpeg, data_uri = prepare_jpeg(image_bytes)
     if latitude is None or longitude is None:
@@ -218,14 +241,23 @@ def analyze_photo(
         ocr = OcrResult()
 
     if reverse_geocode and latitude is not None and longitude is not None:
-        label, geo_step = _timed(
+        geo_value, geo_step = _timed(
             "locate",
             "nominatim",
             lambda: reverse_geocode(latitude, longitude),  # type: ignore[arg-type]
         )
         steps.append(geo_step)
-        if isinstance(label, str) and label.strip():
-            geocode_label = label.strip()
+        geocode_label, road_name = _geocode_parts(geo_value)
+
+    if lookup_permit and latitude is not None and longitude is not None:
+        permit, permit_step = _timed(
+            "permit",
+            "sfgov:x8nh-xzn6",
+            lambda: lookup_permit(latitude, longitude, road_name),  # type: ignore[misc]
+        )
+        steps.append(permit_step)
+        if isinstance(permit, StreetPermitMatch):
+            street_permit = permit
 
     if lookup_nearby and latitude is not None and longitude is not None:
         found, check_step = _timed(
@@ -252,6 +284,8 @@ def analyze_photo(
         "latitude": latitude,
         "longitude": longitude,
         "reverse_geocode": geocode_label,
+        "street_name": None if street_permit is None else street_permit.street_name or road_name,
+        "street_permit": None if street_permit is None else street_permit.model_dump(),
         "suggested_routing": routing,
         "nearby_reports": [item.model_dump() for item in nearby],
         "base_priority_score": base_priority(vision.severity, vision.lane_impact, vision.confidence),
@@ -310,6 +344,9 @@ def analyze_photo(
         nearby_reports=nearby,
         status=status,
         pipeline=steps,
+        agent=None if street_permit is None else street_permit.agent,
+        agent_phone=None if street_permit is None else street_permit.agent_phone,
+        street_permit=street_permit,
     )
     analysis.agent_loop = build_agent_loop(
         vision=vision,
@@ -322,6 +359,7 @@ def analyze_photo(
         duplicate=duplicate,
         routing=routing,
         status=status,
+        street_permit=street_permit,
     )
     analysis.contract = team_contract(analysis)
     return analysis

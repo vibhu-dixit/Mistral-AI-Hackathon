@@ -89,7 +89,7 @@ export default function AnalyzePage() {
             <p className="text-sm text-rw-severity-critical">{data.persist_error}</p>
           ) : null}
           {data.hazards.length > 0 ? (
-            <Link href={`/dashboard?highlight=${highlightIds}`}>
+            <Link href={`/?highlight=${highlightIds}`}>
               <Button className="w-full justify-center">
                 View on map
                 <ArrowRight className="h-4 w-4" />

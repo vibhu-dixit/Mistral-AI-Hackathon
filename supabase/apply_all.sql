@@ -63,9 +63,28 @@ create table if not exists public.hazards (
   civic_category text,
   target_agency text,
   generated_report text,
+  votes integer not null default 0,
+  duplicate_distance_m double precision,
+  agent text,
+  agent_phone text,
+  permit_street_name text,
+  permit_number text,
+  permit_type text,
+  permit_status text,
+  permit_distance_m double precision,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.hazards add column if not exists votes integer not null default 0;
+alter table public.hazards add column if not exists duplicate_distance_m double precision;
+alter table public.hazards add column if not exists agent text;
+alter table public.hazards add column if not exists agent_phone text;
+alter table public.hazards add column if not exists permit_street_name text;
+alter table public.hazards add column if not exists permit_number text;
+alter table public.hazards add column if not exists permit_type text;
+alter table public.hazards add column if not exists permit_status text;
+alter table public.hazards add column if not exists permit_distance_m double precision;
 
 create table if not exists public.reports (
   id uuid primary key default gen_random_uuid(),

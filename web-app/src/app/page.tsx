@@ -1,13 +1,11 @@
-import { Hero } from "@/components/landing/Hero";
-import { HowItWorks } from "@/components/landing/HowItWorks";
-import { ProblemSection } from "@/components/landing/ProblemSection";
+import { Suspense } from "react";
 
-export default function LandingPage() {
+import { DashboardContent } from "@/components/dashboard/DashboardContent";
+
+export default function HomePage() {
   return (
-    <div className="mx-auto max-w-6xl px-6">
-      <Hero />
-      <ProblemSection />
-      <HowItWorks />
-    </div>
+    <Suspense fallback={<div className="p-6 text-rw-text-muted">Loading map…</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

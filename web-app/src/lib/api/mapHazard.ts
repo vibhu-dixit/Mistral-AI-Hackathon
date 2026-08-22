@@ -41,6 +41,36 @@ function mapStatus(value: unknown): HazardStatus {
   return "detected";
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8010";
+
+function asOptionalNumber(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined;
+}
+
+function resolveImageUrl(raw: Record<string, unknown>): string | null {
+  const stored = raw.image_url;
+  if (!stored || typeof stored !== "string") return null;
+  const id = (raw.id as string) ?? (raw.hazard_id as string);
+  if (id) {
+    return `${API_BASE_URL}/api/hazards/${encodeURIComponent(id)}/image`;
+  }
+  if (stored.startsWith("/")) {
+    return `${API_BASE_URL}${stored}`;
+  }
+  return stored;
+}
+
+function asBlank(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  return String(value);
+}
+
 export function mapRawHazard(raw: Record<string, unknown>): Hazard {
   const duplicateMatch = raw.duplicate_match as { distance_meters?: number } | null | undefined;
 
@@ -54,17 +84,26 @@ export function mapRawHazard(raw: Record<string, unknown>): Hazard {
     location_label: (raw.location_label as string) ?? "",
     description: (raw.description as string) ?? "",
     ai_reasoning: (raw.ai_reasoning as string) ?? "",
-    image_url: (raw.image_url as string | null) ?? null,
+    image_url: resolveImageUrl(raw),
     priority_score: Number(raw.priority_score ?? 0),
     duplicate: Boolean(raw.duplicate ?? raw.is_duplicate ?? false),
     duplicate_distance_m:
-      typeof raw.duplicate_distance_m === "number"
-        ? raw.duplicate_distance_m
-        : duplicateMatch?.distance_meters,
+      asOptionalNumber(raw.duplicate_distance_m) ?? duplicateMatch?.distance_meters,
     target_category: (raw.target_category as string) ?? (raw.civic_category as string) ?? "",
     generated_report: (raw.generated_report as string) ?? "",
     status: mapStatus(raw.status),
     detected_at: (raw.detected_at as string) ?? (raw.created_at as string) ?? new Date().toISOString(),
     votes: Number(raw.votes ?? 0),
+    // Not part of the backend contract yet — undefined until/if it is, which
+    // RoadRecord treats the same as "no data" and simply doesn't render.
+    road_author: (raw.road_author as string | null | undefined) ?? undefined,
+    road_constructed_at: (raw.road_constructed_at as string | null | undefined) ?? undefined,
+    agent: asBlank(raw.agent),
+    agent_phone: asBlank(raw.agent_phone ?? raw.agentphone),
+    permit_street_name: asBlank(raw.permit_street_name ?? raw.street_name),
+    permit_number: asBlank(raw.permit_number),
+    permit_type: asBlank(raw.permit_type),
+    permit_status: asBlank(raw.permit_status),
+    permit_distance_m: asOptionalNumber(raw.permit_distance_m),
   };
 }

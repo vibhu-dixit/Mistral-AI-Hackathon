@@ -3,8 +3,10 @@ import Link from "next/link";
 
 import { AIReasoningBlock } from "@/components/hazard/AIReasoningBlock";
 import { ConfidenceMeter } from "@/components/hazard/ConfidenceMeter";
+import { RoadRecord } from "@/components/hazard/RoadRecord";
 import { SeverityBadge } from "@/components/hazard/SeverityBadge";
 import { StatusBadge } from "@/components/hazard/StatusBadge";
+import { StreetPermitInfo } from "@/components/hazard/StreetPermitInfo";
 import { VoteWidget } from "@/components/hazard/VoteWidget";
 import { Button } from "@/components/ui/Button";
 import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
@@ -37,7 +39,7 @@ export function HazardDetail({ hazard }: { hazard: Hazard }) {
       </div>
 
       {hazard.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- Supabase/public image URLs
+        // eslint-disable-next-line @next/next/no-img-element -- served through the backend image proxy
         <img
           src={hazard.image_url}
           alt={HAZARD_TYPE_LABEL[hazard.hazard_type]}
@@ -74,7 +76,11 @@ export function HazardDetail({ hazard }: { hazard: Hazard }) {
         </div>
       </dl>
 
+      <StreetPermitInfo hazard={hazard} />
+
       <AIReasoningBlock text={hazard.ai_reasoning} />
+
+      <RoadRecord author={hazard.road_author} constructedAt={hazard.road_constructed_at} />
 
       <div>
         <p className="mb-3 text-sm text-rw-text-muted">

@@ -2,15 +2,64 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
 from app import hazard_memory
-from app.present import present_analysis, to_db_hazard_type
+from app.present import permit_fields_from_analysis, present_analysis, to_db_hazard_type
 from app.store import get_supabase
 from mistral_pipeline.schemas import HazardAnalysis
 
 
 DEFAULT_MAP_LAT = 37.7749
 DEFAULT_MAP_LNG = -122.4194
+OPTIONAL_HAZARD_COLUMNS = (
+    "votes",
+    "duplicate_distance_m",
+    "agent",
+    "agent_phone",
+    "permit_street_name",
+    "permit_number",
+    "permit_type",
+    "permit_status",
+    "permit_distance_m",
+)
+
+
+def _duplicate_distance_m(analysis: HazardAnalysis) -> float | None:
+    if analysis.duplicate_match is None:
+        return None
+    return analysis.duplicate_match.distance_meters
+
+
+def _public_image_url(client: Any, path: str) -> str:
+    url = str(client.storage.from_("hazard-media").get_public_url(path) or "").strip()
+    return url.rstrip("?")
+
+
+def _missing_optional_columns(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return "pgrst204" in message or any(column in message for column in OPTIONAL_HAZARD_COLUMNS)
+
+
+def _insert_hazard(client: Any, payload: dict[str, Any]) -> None:
+    try:
+        client.table("hazards").insert(payload).execute()
+    except Exception as exc:
+        if not _missing_optional_columns(exc):
+            raise
+        stripped = {key: value for key, value in payload.items() if key not in OPTIONAL_HAZARD_COLUMNS}
+        client.table("hazards").insert(stripped).execute()
+
+
+def _update_hazard(client: Any, hazard_id: str, updates: dict[str, Any]) -> None:
+    try:
+        client.table("hazards").update(updates).eq("id", hazard_id).execute()
+    except Exception as exc:
+        if not _missing_optional_columns(exc):
+            raise
+        stripped = {key: value for key, value in updates.items() if key not in OPTIONAL_HAZARD_COLUMNS}
+        if stripped:
+            client.table("hazards").update(stripped).eq("id", hazard_id).execute()
 
 
 def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bool = False) -> HazardAnalysis:
@@ -40,6 +89,7 @@ def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bo
             analysis.location_confidence = "low"
 
     image_url = analysis.image_url
+    errors: list[str] = []
     try:
         client = get_supabase()
         path = f"hazards/{hazard_id}/{uuid.uuid4().hex}.jpg"
@@ -49,22 +99,26 @@ def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bo
                 image_bytes,
                 {"content-type": "image/jpeg", "upsert": "true"},
             )
-            image_url = client.storage.from_("hazard-media").get_public_url(path)
+            image_url = _public_image_url(client, path)
         except Exception as exc:
-            analysis.persist_error = f"image upload failed: {exc}"
+            errors.append(f"image upload failed: {exc}")
 
         db_type = to_db_hazard_type(analysis.hazard_type)
+        distance_m = _duplicate_distance_m(analysis)
         if existing_id:
-            client.table("observations").insert(
-                {
-                    "hazard_id": existing_id,
-                    "observed_at": now,
-                    "latitude": analysis.latitude,
-                    "longitude": analysis.longitude,
-                    "image_url": image_url,
-                    "source": "photo",
-                }
-            ).execute()
+            try:
+                client.table("observations").insert(
+                    {
+                        "hazard_id": existing_id,
+                        "observed_at": now,
+                        "latitude": analysis.latitude,
+                        "longitude": analysis.longitude,
+                        "image_url": image_url,
+                        "source": "photo",
+                    }
+                ).execute()
+            except Exception as exc:
+                errors.append(f"observation insert failed: {exc}")
             current = (
                 client.table("hazards")
                 .select("sighting_count,status")
@@ -74,10 +128,16 @@ def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bo
             )
             rows = current.data or []
             sightings = int((rows[0].get("sighting_count") if rows else 1) or 1) + 1
-            updates = {"sighting_count": sightings, "updated_at": now}
+            updates: dict[str, Any] = {
+                "sighting_count": sightings,
+                "updated_at": now,
+                "is_duplicate": True,
+                "duplicate_distance_m": distance_m,
+                **permit_fields_from_analysis(analysis),
+            }
             if image_url:
                 updates["image_url"] = image_url
-            client.table("hazards").update(updates).eq("id", existing_id).execute()
+            _update_hazard(client, existing_id, updates)
             analysis.linked_to_existing = True
             if rows:
                 analysis.status = str(rows[0].get("status") or analysis.status)
@@ -93,45 +153,60 @@ def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bo
                 "location_label": analysis.location_label,
                 "location_confidence": analysis.location_confidence,
                 "ocr_text": analysis.ocr_text[:4000] if analysis.ocr_text else None,
-                "description": analysis.description,
+                "description": analysis.description or "Road hazard detected from street photo.",
                 "ai_reasoning": analysis.ai_reasoning,
                 "lane_impact": analysis.lane_impact,
                 "image_url": image_url,
                 "priority_score": analysis.priority_score,
                 "is_duplicate": analysis.duplicate,
                 "duplicate_of": None,
-                "civic_category": analysis.civic_category,
+                "civic_category": analysis.civic_category or analysis.target_category,
                 "target_agency": analysis.target_agency,
                 "generated_report": analysis.generated_report,
+                "votes": 0,
+                "duplicate_distance_m": distance_m,
+                **permit_fields_from_analysis(analysis),
                 "created_at": now,
                 "updated_at": now,
             }
-            client.table("hazards").insert(payload).execute()
-            client.table("observations").insert(
-                {
-                    "hazard_id": hazard_id,
-                    "observed_at": now,
-                    "latitude": analysis.latitude,
-                    "longitude": analysis.longitude,
-                    "image_url": image_url,
-                    "source": "photo",
-                }
-            ).execute()
-            if analysis.generated_report:
-                client.table("reports").insert(
+            _insert_hazard(client, payload)
+            try:
+                client.table("observations").insert(
                     {
                         "hazard_id": hazard_id,
-                        "civic_category": analysis.civic_category or analysis.target_category,
-                        "generated_text": analysis.generated_report,
-                        "target_agency": analysis.target_agency,
-                        "status": "ready_for_submission",
+                        "observed_at": now,
+                        "latitude": analysis.latitude,
+                        "longitude": analysis.longitude,
+                        "image_url": image_url,
+                        "source": "photo",
                     }
                 ).execute()
+            except Exception as exc:
+                errors.append(f"observation insert failed: {exc}")
+            if analysis.generated_report:
+                try:
+                    client.table("reports").insert(
+                        {
+                            "hazard_id": hazard_id,
+                            "civic_category": analysis.civic_category or analysis.target_category or "Street Defect",
+                            "generated_text": analysis.generated_report,
+                            "target_agency": analysis.target_agency,
+                            "status": "ready_for_submission",
+                        }
+                    ).execute()
+                except Exception as exc:
+                    errors.append(f"report insert failed: {exc}")
         analysis.image_url = image_url
         analysis.persisted = True
+        if errors:
+            analysis.persist_error = "; ".join(errors)
     except Exception as exc:
         analysis.persisted = False
-        analysis.persist_error = str(exc)
+        extra = f"; {'; '.join(errors)}" if errors else ""
+        analysis.persist_error = (
+            "Could not save to Supabase, so other laptops will not see this pin until this succeeds: "
+            f"{exc}{extra}"
+        )
         if image_url:
             analysis.image_url = image_url
 
