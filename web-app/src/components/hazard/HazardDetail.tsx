@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AIReasoningBlock } from "@/components/hazard/AIReasoningBlock";
 import { ConfidenceMeter } from "@/components/hazard/ConfidenceMeter";
+import { RoadRecord } from "@/components/hazard/RoadRecord";
 import { SeverityBadge } from "@/components/hazard/SeverityBadge";
 import { StatusBadge } from "@/components/hazard/StatusBadge";
 import { VoteWidget } from "@/components/hazard/VoteWidget";
@@ -75,6 +76,8 @@ export function HazardDetail({ hazard }: { hazard: Hazard }) {
       </dl>
 
       <AIReasoningBlock text={hazard.ai_reasoning} />
+
+      <RoadRecord author={hazard.road_author} constructedAt={hazard.road_constructed_at} />
 
       <div>
         <p className="mb-3 text-sm text-rw-text-muted">

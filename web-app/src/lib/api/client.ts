@@ -54,6 +54,8 @@ export async function analyzeImage(
     body: formData,
   });
 
+  console.log("[RoadWatch] /analyze-image raw pipeline result:", raw);
+
   if (!raw.hazard_detected) {
     return { hazards: [] };
   }

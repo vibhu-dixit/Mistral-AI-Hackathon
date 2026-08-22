@@ -66,5 +66,9 @@ export function mapRawHazard(raw: Record<string, unknown>): Hazard {
     status: mapStatus(raw.status),
     detected_at: (raw.detected_at as string) ?? (raw.created_at as string) ?? new Date().toISOString(),
     votes: Number(raw.votes ?? 0),
+    // Not part of the backend contract yet — undefined until/if it is, which
+    // RoadRecord treats the same as "no data" and simply doesn't render.
+    road_author: (raw.road_author as string | null | undefined) ?? undefined,
+    road_constructed_at: (raw.road_constructed_at as string | null | undefined) ?? undefined,
   };
 }
