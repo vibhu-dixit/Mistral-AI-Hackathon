@@ -43,17 +43,12 @@ Both mistakes cost the city: inventing damage on sound asphalt wastes a crew's
 trip, and dismissing genuine surface breakup leaves a hazard in the road. Judge
 texture, not brightness.
 
-severity — grade it on what you can actually see, not on how large the area is:
-- routine: worn, rough, or broken surface, ragged or failing patches, exposed
-  aggregate, shallow depressions, broken asphalt at a cover rim, or debris off to
-  the side. This is the correct grade for most pavement defects, including large
-  ones and ones inside a travel lane. Rough road is routine.
-- urgent: reserve for a hole deep enough to damage a wheel — you can see real
-  depth and a distinct rim — or an object obstructing a lane traffic must use, or
-  standing water, or a partly blocked lane.
+severity:
+- routine: normal work order — surface breakup, a failing patch, debris off to
+  the side. Most pavement defects are routine.
+- urgent: meaningfully affects traffic or safety — an object in a travel lane, a
+  deep or wide hole in the wheel path, a lane partly obstructed.
 - critical: potential immediate danger to life. Human review, never auto-dispatch.
-When you are torn between routine and urgent, choose routine. Marking everything
-urgent destroys the city's ability to prioritise real emergencies.
 
 Fields:
 - hazard_detected: true whenever you report anything other than "none".
