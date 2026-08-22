@@ -57,9 +57,12 @@ export async function analyzeImage(
   console.log("[RoadWatch] /analyze-image raw pipeline result:", raw);
 
   if (!raw.hazard_detected) {
-    return { hazards: [] };
+    return {
+      hazards: [],
+      ai_reasoning: typeof raw.ai_reasoning === "string" ? raw.ai_reasoning : "",
+    };
   }
-  return { hazards: [mapRawHazard(raw)] };
+  return { hazards: [mapRawHazard(raw)], persist_error: typeof raw.persist_error === "string" ? raw.persist_error : undefined };
 }
 
 export async function analyzeVideo(

@@ -9,6 +9,10 @@ from app.store import get_supabase
 from mistral_pipeline.schemas import HazardAnalysis
 
 
+DEFAULT_MAP_LAT = 37.7749
+DEFAULT_MAP_LNG = -122.4194
+
+
 def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bool = False) -> HazardAnalysis:
     if not analysis.hazard_detected:
         return analysis
@@ -28,9 +32,12 @@ def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bo
     analysis.hazard_id = hazard_id
 
     if analysis.latitude is None or analysis.longitude is None:
-        analysis.persist_error = "Missing coordinates; analysis returned but not stored"
-        hazard_memory.remember(present_analysis(analysis, detected_at=now))
-        return analysis
+        analysis.latitude = DEFAULT_MAP_LAT
+        analysis.longitude = DEFAULT_MAP_LNG
+        if not analysis.location_label:
+            analysis.location_label = "Location approximate — enable GPS on the next upload for a precise pin"
+        if analysis.location_confidence in {"", "none"}:
+            analysis.location_confidence = "low"
 
     image_url = analysis.image_url
     try:
@@ -78,7 +85,7 @@ def persist_analysis(analysis: HazardAnalysis, image_bytes: bytes, force_new: bo
             payload = {
                 "id": hazard_id,
                 "hazard_type": db_type,
-                "severity": analysis.severity,
+                "severity": analysis.severity or "routine",
                 "status": analysis.status,
                 "confidence": analysis.confidence,
                 "latitude": analysis.latitude,

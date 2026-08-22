@@ -53,9 +53,15 @@ def analyze_image(data_uri: str) -> VisionResult:
     if data is None:
         raise last_error or RuntimeError("vision returned no JSON")
     hazard_type = str(data.get("hazard_type") or "none").strip().lower()
+    if hazard_type == "debris":
+        hazard_type = "road_debris"
     if hazard_type not in ALLOWED_TYPES:
         hazard_type = "none"
-    detected = bool(data.get("hazard_detected")) and hazard_type != "none"
+    detected = bool(data.get("hazard_detected"))
+    if hazard_type != "none":
+        detected = True
+    if not detected:
+        hazard_type = "none"
     severity = data.get("severity")
     if severity not in {"routine", "urgent", "critical"}:
         severity = None if not detected else "routine"
