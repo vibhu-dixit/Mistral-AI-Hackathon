@@ -28,3 +28,5 @@ class Observation(BaseModel):
     generated_report: str | None = None
     duplicate: bool = False
     hazard_id: str | None = None
+    agent: str | None = None
+    agent_phone: str | None = None

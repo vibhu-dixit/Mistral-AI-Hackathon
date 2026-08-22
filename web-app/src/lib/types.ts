@@ -34,6 +34,13 @@ export interface Hazard {
   status: HazardStatus;
   detected_at: string; // ISO 8601
   votes: number; // net score (upvotes - downvotes) from citizen prioritization
+  agent: string; // SF street-use permit contractor; blank if none
+  agent_phone: string;
+  permit_street_name: string;
+  permit_number: string;
+  permit_type: string;
+  permit_status: string;
+  permit_distance_m?: number;
 }
 
 export interface AnalyzeResponse {

@@ -4,6 +4,7 @@ from app.duplicates import lookup_nearby
 from app.geocode import reverse_geocode
 from app.models import Observation
 from app.persist import persist_analysis
+from app.street_permits import lookup_street_permit
 from mistral_pipeline.images import prepare_jpeg
 from mistral_pipeline.pipeline import analyze_photo
 
@@ -19,6 +20,7 @@ async def analyze_observation(observation: Observation, image_bytes: bytes) -> O
             longitude=longitude,
             reverse_geocode=reverse_geocode,
             lookup_nearby=lookup_nearby,
+            lookup_permit=lookup_street_permit,
         )
     except Exception as exc:
         observation.processing_status = "failed"
@@ -29,6 +31,8 @@ async def analyze_observation(observation: Observation, image_bytes: bytes) -> O
     observation.duplicate = result.duplicate
     observation.generated_report = result.generated_report or None
     observation.confidence = result.confidence
+    observation.agent = result.agent
+    observation.agent_phone = result.agent_phone
 
     if result.hazard_detected:
         observation.hazard_type = result.hazard_type
