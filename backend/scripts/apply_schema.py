@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FILES = [
     ROOT / "supabase" / "schema.sql",
     ROOT / "supabase" / "rls-writes.sql",
+    ROOT / "backend" / "supabase" / "001_observations.sql",
 ]
 
 
