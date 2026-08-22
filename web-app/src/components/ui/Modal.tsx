@@ -19,12 +19,12 @@ export function Modal({ onClose, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-[rw-modal-backdrop-in_150ms_ease-out]"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-rw-surface p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-rw-surface p-6 shadow-xl animate-[rw-modal-panel-in_180ms_ease-out]"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"

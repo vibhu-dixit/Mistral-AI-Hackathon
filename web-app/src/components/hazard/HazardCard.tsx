@@ -5,20 +5,37 @@ import { StatusBadge } from "@/components/hazard/StatusBadge";
 import { VoteWidget } from "@/components/hazard/VoteWidget";
 import { Card } from "@/components/ui/Card";
 import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
+import { cn } from "@/lib/cn";
 import { formatDetectedAt } from "@/lib/format";
 import { HAZARD_TYPE_LABEL, type Hazard } from "@/lib/types";
 
 interface HazardCardProps {
   hazard: Hazard;
   onClick?: () => void;
+  highlighted?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-export function HazardCard({ hazard, onClick }: HazardCardProps) {
+export function HazardCard({
+  hazard,
+  onClick,
+  highlighted = false,
+  onMouseEnter,
+  onMouseLeave,
+}: HazardCardProps) {
   return (
     <Card
       role={onClick ? "button" : undefined}
       onClick={onClick}
-      className="flex gap-4 text-left transition hover:border-rw-brand-start/50"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={cn(
+        "flex gap-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg",
+        highlighted
+          ? "-translate-y-0.5 border-rw-brand-start shadow-lg ring-2 ring-rw-brand-start/40"
+          : "hover:border-rw-brand-start/50",
+      )}
     >
       {hazard.image_url ? (
         // eslint-disable-next-line @next/next/no-img-element -- Supabase/public image URLs, no next/image domain config

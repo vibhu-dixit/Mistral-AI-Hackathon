@@ -24,11 +24,12 @@ export function DashboardContent() {
   const searchParams = useSearchParams();
 
   const [filters, setFilters] = useState<HazardFilters>({});
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  // Deep-link support: /dashboard?hazard=<id> opens straight into detail,
-  // and /dashboard?highlight=<id,id> (from the analyze flow) opens the
-  // first newly-detected hazard so it's visibly emphasized on arrival.
-  // Read once at mount via the initializer — the URL a user lands on
+  // Deep-link support: /?hazard=<id> opens straight into detail, and
+  // /?highlight=<id,id> (from the analyze flow) opens the first
+  // newly-detected hazard so it's visibly emphasized on arrival. Read
+  // once at mount via the initializer — the URL a user lands on
   // shouldn't keep re-syncing into state on every param change.
   const [selectedId, setSelectedId] = useState<string | null>(() => {
     const hazardParam = searchParams.get("hazard");
@@ -41,12 +42,12 @@ export function DashboardContent() {
 
   function selectHazard(id: string) {
     setSelectedId(id);
-    router.replace(`/dashboard?hazard=${id}`, { scroll: false });
+    router.replace(`/?hazard=${id}`, { scroll: false });
   }
 
   function closeDetail() {
     setSelectedId(null);
-    router.replace("/dashboard", { scroll: false });
+    router.replace("/", { scroll: false });
   }
 
   return (
@@ -54,8 +55,18 @@ export function DashboardContent() {
       <aside className="flex w-80 shrink-0 flex-col gap-6 overflow-y-auto">
         <div>
           <h1 className="text-xl font-semibold text-rw-text">Road condition map</h1>
-          <p className="mt-1 text-sm text-rw-text-muted">
-            {isLoading ? "Loading…" : `${hazards?.length ?? 0} hazards`}
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-rw-text-muted">
+            {isLoading ? (
+              "Loading…"
+            ) : (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rw-brand-start opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-rw-brand-start" />
+                </span>
+                {hazards?.length ?? 0} hazards
+              </>
+            )}
           </p>
           {error && <p className="mt-2 text-sm text-rw-severity-critical">{error.message}</p>}
         </div>
@@ -64,13 +75,27 @@ export function DashboardContent() {
 
         <div className="space-y-3">
           {hazards?.map((hazard) => (
-            <HazardCard key={hazard.id} hazard={hazard} onClick={() => selectHazard(hazard.id)} />
+            <HazardCard
+              key={hazard.id}
+              hazard={hazard}
+              onClick={() => selectHazard(hazard.id)}
+              highlighted={hoveredId === hazard.id}
+              onMouseEnter={() => setHoveredId(hazard.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            />
           ))}
         </div>
       </aside>
 
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-rw-border">
-        {hazards && <MapCanvas hazards={hazards} onSelectHazard={selectHazard} />}
+      <div className="relative flex-1 overflow-hidden rounded-2xl border border-rw-border shadow-sm">
+        {hazards && (
+          <MapCanvas
+            hazards={hazards}
+            onSelectHazard={selectHazard}
+            hoveredHazardId={hoveredId}
+            onHoverHazard={setHoveredId}
+          />
+        )}
         <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2">
           <MapLegend />
         </div>
