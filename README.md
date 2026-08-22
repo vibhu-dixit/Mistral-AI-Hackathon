@@ -11,7 +11,7 @@ Discord: https://discord.gg/G62ZfzHyx
 ## How the pieces fit together
 
 ```
-Mobile App  --POST /api/reports-->  Backend/API  --stores-->  Database
+Web App     --POST /api/reports-->  Backend/API  --stores-->  Database
                                           |
                                           |--POST /analyze--> AI/ML Service (Mistral)
                                           |                    (severity, category, responsible_party)
@@ -26,7 +26,7 @@ shapes — start there before writing any integration code.
 
 | Area | Folder | Owner | Scope |
 |---|---|---|---|
-| Mobile/Frontend | [`mobile-app/`](mobile-app/) | TBD | Photo capture, GPS/EXIF geotagging, submission flow, confirmation + tracking ID lookup |
+| Frontend (Web App) | [`web-app/`](web-app/) | TBD | Photo capture/upload, GPS/EXIF geotagging, submission flow, confirmation + tracking ID lookup |
 | Backend/API | [`backend/`](backend/) | TBD | Report ingestion endpoint, DB schema, routing/integration glue |
 | AI/ML Integration | [`ai-service/`](ai-service/) | TBD | Mistral prompt design (severity), location → responsible party mapping |
 | Dashboard/Data Viz | [`dashboard/`](dashboard/) | TBD | Public map, prioritization algorithm, status/filter UI |
@@ -40,7 +40,7 @@ column above once the team claims areas.
 - **Contract first, implementation second.** Backend owns the schema in
   `docs/API_CONTRACT.md` and should nail it early — everyone else builds
   against it (mocked, if needed) rather than waiting on a live backend.
-- **Branching:** work on a feature branch per area, e.g. `feature/mobile-app`,
+- **Branching:** work on a feature branch per area, e.g. `feature/web-app`,
   `feature/backend`, `feature/ai-service`, `feature/dashboard`. Open a PR into
   `main` rather than pushing straight to it.
 - **Stay in your lane's folder.** Cross-cutting changes (like editing the API

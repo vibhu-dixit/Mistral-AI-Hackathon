@@ -5,8 +5,8 @@ This is the shared contract between all four workstreams. It's a draft — the
 schema lands, but everyone else should build against this now instead of
 waiting.
 
-If you change something here, ping the channel — mobile/dashboard may already
-be mocking against it.
+If you change something here, ping the channel — web app/dashboard may
+already be mocking against it.
 
 ## Core data model: `Report`
 
@@ -35,7 +35,7 @@ Notes:
 - `tracking_id` is what's shown to the citizen on the confirmation screen for
   status lookup — keep it short and typo-resistant.
 
-## Backend/API endpoints (mobile + dashboard consume these)
+## Backend/API endpoints (web app + dashboard consume these)
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -61,7 +61,7 @@ of the backend integration.
 
 ## Mocking before the real thing exists
 
-Mobile and Dashboard should not wait on Backend to build real endpoints.
+Web App and Dashboard should not wait on Backend to build real endpoints.
 Stand up a mock (e.g. a static JSON file, `json-server`, or a few hardcoded
 responses) matching the shapes above and swap in the real base URL once
 Backend has something running.

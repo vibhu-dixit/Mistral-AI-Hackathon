@@ -5,7 +5,7 @@
 - Public map interface
 - Prioritization algorithm (severity + report count + time open)
 - Status tracking UI, filters
-- Consumes the same API as the mobile app — read-heavy (`GET /api/reports`),
+- Consumes the same API as the web app — read-heavy (`GET /api/reports`),
   see [`../docs/API_CONTRACT.md`](../docs/API_CONTRACT.md)
 
 ## Notes
