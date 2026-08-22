@@ -38,7 +38,9 @@ export interface Hazard {
 
 export interface AnalyzeResponse {
   hazards: Hazard[];
-  frame_count?: number; // video only: how many frames were sampled
+  frame_count?: number;
+  ai_reasoning?: string;
+  persist_error?: string;
 }
 
 export interface HazardFilters {

@@ -20,6 +20,9 @@ export function AnalysisProgress({ stages, stageIndex, isSuccess, data }: Analys
           <span className="font-semibold">{data.hazards.length}</span>{" "}
           {data.hazards.length === 1 ? "hazard" : "hazards"} detected
           {data.frame_count ? ` across ${data.frame_count} sampled frames` : ""}.
+          {data.ai_reasoning && data.hazards.length === 0 ? (
+            <p className="mt-2 text-rw-text-muted">{data.ai_reasoning}</p>
+          ) : null}
         </div>
       )}
     </Card>
