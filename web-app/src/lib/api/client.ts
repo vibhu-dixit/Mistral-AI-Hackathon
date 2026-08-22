@@ -8,8 +8,19 @@ import type {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8010";
 
+// ngrok's free tier shows an HTML "you're about to visit a tunnel" warning
+// page to browser-looking requests instead of forwarding to the backend —
+// which has no CORS headers, so the browser reports it as a CORS failure
+// even though the backend's own CORS config is wide open. This header
+// tells ngrok to skip that page. Harmless (and ignored) against a plain
+// localhost/LAN backend that isn't behind ngrok at all.
+const NGROK_SKIP_HEADER = { "ngrok-skip-browser-warning": "true" };
+
 async function backendFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, init);
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: { ...NGROK_SKIP_HEADER, ...(init?.headers as Record<string, string> | undefined) },
+  });
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     const detail = body?.detail;
@@ -81,7 +92,7 @@ export async function listHazards(filters?: HazardFilters): Promise<Hazard[]> {
 }
 
 export async function getHazard(id: string): Promise<Hazard | undefined> {
-  const res = await fetch(`${API_BASE_URL}/api/hazards/${id}`);
+  const res = await fetch(`${API_BASE_URL}/api/hazards/${id}`, { headers: NGROK_SKIP_HEADER });
   if (res.status === 404) return undefined;
   if (!res.ok) {
     const body = await res.json().catch(() => null);

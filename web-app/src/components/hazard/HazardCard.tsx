@@ -1,10 +1,10 @@
 import { MapPin } from "lucide-react";
 
+import { HazardImage } from "@/components/hazard/HazardImage";
 import { SeverityBadge } from "@/components/hazard/SeverityBadge";
 import { StatusBadge } from "@/components/hazard/StatusBadge";
 import { VoteWidget } from "@/components/hazard/VoteWidget";
 import { Card } from "@/components/ui/Card";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
 import { cn } from "@/lib/cn";
 import { formatDetectedAt } from "@/lib/format";
 import { HAZARD_TYPE_LABEL, type Hazard } from "@/lib/types";
@@ -37,16 +37,11 @@ export function HazardCard({
           : "hover:border-rw-brand-start/50",
       )}
     >
-      {hazard.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- served through the backend image proxy
-        <img
-          src={hazard.image_url}
-          alt={HAZARD_TYPE_LABEL[hazard.hazard_type]}
-          className="h-20 w-20 shrink-0 rounded-xl object-cover"
-        />
-      ) : (
-        <ImagePlaceholder className="h-20 w-20 shrink-0" />
-      )}
+      <HazardImage
+        src={hazard.image_url}
+        alt={HAZARD_TYPE_LABEL[hazard.hazard_type]}
+        className="h-20 w-20 shrink-0 rounded-xl object-cover"
+      />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">

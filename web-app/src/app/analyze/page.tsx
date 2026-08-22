@@ -64,9 +64,8 @@ export default function AnalyzePage() {
                   coords: geolocation.coords ?? undefined,
                 })
               }
-              disabled={geolocation.status === "requesting"}
             >
-              {geolocation.status === "requesting" ? "Getting location..." : "Analyze Drive"}
+              Analyze Drive
             </Button>
             <Button variant="secondary" onClick={() => setSelected(null)}>
               Choose a different file

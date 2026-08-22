@@ -3,13 +3,13 @@ import Link from "next/link";
 
 import { AIReasoningBlock } from "@/components/hazard/AIReasoningBlock";
 import { ConfidenceMeter } from "@/components/hazard/ConfidenceMeter";
+import { HazardImage } from "@/components/hazard/HazardImage";
 import { RoadRecord } from "@/components/hazard/RoadRecord";
 import { SeverityBadge } from "@/components/hazard/SeverityBadge";
 import { StatusBadge } from "@/components/hazard/StatusBadge";
 import { StreetPermitInfo } from "@/components/hazard/StreetPermitInfo";
 import { VoteWidget } from "@/components/hazard/VoteWidget";
 import { Button } from "@/components/ui/Button";
-import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder";
 import { formatDetectedAt, formatDistance } from "@/lib/format";
 import { HAZARD_TYPE_LABEL, type Hazard } from "@/lib/types";
 
@@ -38,16 +38,11 @@ export function HazardDetail({ hazard }: { hazard: Hazard }) {
         </div>
       </div>
 
-      {hazard.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- served through the backend image proxy
-        <img
-          src={hazard.image_url}
-          alt={HAZARD_TYPE_LABEL[hazard.hazard_type]}
-          className="h-56 w-full rounded-xl object-cover"
-        />
-      ) : (
-        <ImagePlaceholder className="h-56 w-full" />
-      )}
+      <HazardImage
+        src={hazard.image_url}
+        alt={HAZARD_TYPE_LABEL[hazard.hazard_type]}
+        className="h-56 w-full rounded-xl object-cover"
+      />
 
       {hazard.duplicate && (
         <div className="flex items-center gap-2 rounded-xl border border-rw-accent-navy/30 bg-rw-accent-navy/5 px-4 py-3 text-sm text-rw-accent-navy">

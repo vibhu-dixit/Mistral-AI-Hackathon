@@ -179,10 +179,36 @@ def analyze_photo(
     street_permit: StreetPermitMatch | None = None
 
     _jpeg, data_uri = prepare_jpeg(image_bytes)
-    if latitude is None or longitude is None:
+
+    location_started = time.perf_counter()
+    client_provided = latitude is not None and longitude is not None
+    exif_lat: float | None = None
+    exif_lng: float | None = None
+    if not client_provided:
         exif_lat, exif_lng = extract_exif_gps(image_bytes)
         latitude = latitude if latitude is not None else exif_lat
         longitude = longitude if longitude is not None else exif_lng
+    exif_found = exif_lat is not None and exif_lng is not None
+    location_source = "client" if client_provided else "exif" if exif_found else "none"
+    # Diagnostic-only step — lets us see definitively (via the pipeline
+    # array in the response) whether an uploaded photo actually carried
+    # GPS EXIF, instead of only ever seeing the final resolved lat/lng
+    # with no way to tell which source produced it.
+    steps.append(
+        PipelineStep(
+            name="locate-source",
+            model=None,
+            ms=int((time.perf_counter() - location_started) * 1000),
+            ok=True,
+            detail={
+                "source": location_source,
+                "client_provided": client_provided,
+                "exif_found": exif_found,
+                "final_latitude": latitude,
+                "final_longitude": longitude,
+            },
+        )
+    )
 
     vision, vision_step = _timed("see", vision_model(), lambda: vision_mod.analyze_image(data_uri))
     steps.append(vision_step)

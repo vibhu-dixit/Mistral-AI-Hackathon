@@ -3,7 +3,12 @@ from __future__ import annotations
 import base64
 import io
 
+import pillow_heif
 from PIL import Image, ImageOps
+
+# Lets Image.open() read HEIC/HEIF (iPhone default camera format) as if it
+# were any other format — without this, Pillow can't open them at all.
+pillow_heif.register_heif_opener()
 
 MAX_SIDE = 1568
 

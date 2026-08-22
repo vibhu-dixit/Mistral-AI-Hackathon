@@ -4,7 +4,15 @@ import io
 import re
 from math import asin, cos, radians, sin, sqrt
 
+import pillow_heif
 from PIL import Image, ExifTags
+
+# Registering here too (not just images.py) — this module opens the image
+# independently for EXIF GPS extraction, and register_heif_opener() is
+# idempotent, so it's safe to call from both places regardless of import
+# order. Without it, HEIC uploads silently return (None, None) here instead
+# of raising, since the caller only checks "did we get coordinates."
+pillow_heif.register_heif_opener()
 
 # SF Active Street Use Permits (`streetname`) uses ALL CAPS + USPS suffixes
 # and zero-pads numbered streets (`08TH ST`, `01ST ST`).

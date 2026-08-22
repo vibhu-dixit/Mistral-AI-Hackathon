@@ -1,4 +1,4 @@
-import { AlertCircle, Loader2, MapPin, MapPinOff } from "lucide-react";
+import { AlertCircle, Clock, Loader2, MapPin, MapPinOff } from "lucide-react";
 
 import type { GeoStatus } from "@/hooks/useGeolocation";
 
@@ -32,7 +32,25 @@ export function LocationStatus({ status, coords }: LocationStatusProps) {
     return (
       <p className="flex items-center gap-1.5 text-sm text-rw-text-muted">
         <AlertCircle className="h-3.5 w-3.5" />
-        Location permission denied — continuing without it.
+        Location permission denied — check your browser/OS location settings for this site.
+      </p>
+    );
+  }
+
+  if (status === "timeout") {
+    return (
+      <p className="flex items-center gap-1.5 text-sm text-rw-text-muted">
+        <Clock className="h-3.5 w-3.5" />
+        Location took too long to respond — continuing without it.
+      </p>
+    );
+  }
+
+  if (status === "unavailable") {
+    return (
+      <p className="flex items-center gap-1.5 text-sm text-rw-text-muted">
+        <MapPinOff className="h-3.5 w-3.5" />
+        Couldn&rsquo;t get a location fix (permission is fine, just no GPS signal) — continuing without it.
       </p>
     );
   }
