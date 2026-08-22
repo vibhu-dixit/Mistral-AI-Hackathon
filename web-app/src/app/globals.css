@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/*
+ * Design tokens — see PLAN.md §2. Adapted from mistral.ai's own shipped
+ * palette (pulled from their CSS, not guessed): warm orange→amber as the
+ * brand gradient, deep navy as the cool accent. Severity colors reuse the
+ * same warm ramp so escalating severity reads as escalating color.
+ */
+:root {
+  --rw-bg: #fbfaf6;
+  --rw-surface: #ffffff;
+  --rw-border: #e7e4dc;
+  --rw-text: #17171c;
+  --rw-text-muted: #6b6a66;
+
+  --rw-brand-start: #fa500f;
+  --rw-brand-end: #fec63a;
+  --rw-accent-navy: #044298;
+
+  --rw-severity-routine: #fec63a;
+  --rw-severity-urgent: #ff8204;
+  --rw-severity-critical: #c4001d;
+
+  --rw-status-detected: #6b6a66;
+  --rw-status-report-ready: #044298;
+  --rw-status-reported: #2da771;
+  --rw-status-in-progress: #ff8204;
+  --rw-status-resolved: #15cf74;
+}
+
+@theme inline {
+  --color-rw-bg: var(--rw-bg);
+  --color-rw-surface: var(--rw-surface);
+  --color-rw-border: var(--rw-border);
+  --color-rw-text: var(--rw-text);
+  --color-rw-text-muted: var(--rw-text-muted);
+
+  --color-rw-brand-start: var(--rw-brand-start);
+  --color-rw-brand-end: var(--rw-brand-end);
+  --color-rw-accent-navy: var(--rw-accent-navy);
+
+  --color-rw-severity-routine: var(--rw-severity-routine);
+  --color-rw-severity-urgent: var(--rw-severity-urgent);
+  --color-rw-severity-critical: var(--rw-severity-critical);
+
+  --color-rw-status-detected: var(--rw-status-detected);
+  --color-rw-status-report-ready: var(--rw-status-report-ready);
+  --color-rw-status-reported: var(--rw-status-reported);
+  --color-rw-status-in-progress: var(--rw-status-in-progress);
+  --color-rw-status-resolved: var(--rw-status-resolved);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--rw-bg);
+  color: var(--rw-text);
+}
+
+/* Leaflet renders its own inline z-indexes; keep it below our modals/nav. */
+.leaflet-container {
+  z-index: 0;
+}
