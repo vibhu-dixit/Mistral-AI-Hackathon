@@ -44,6 +44,42 @@ Notes:
 | `GET` | `/api/reports` | List reports, filterable by `status`, `severity`, bounding box — used by the dashboard. |
 | `PATCH` | `/api/reports/:id` | Update status/severity/etc — called internally after AI processing, and by city staff. |
 
+## Image observation pipeline
+
+The observation endpoint is the handoff from the capture client to the AI and
+routing workstreams. It accepts an image and optional device coordinates. EXIF
+GPS is authoritative when present; client GPS is the fallback. OCR and visual
+location clues are supporting evidence and must not replace validated
+coordinates.
+
+`POST /api/observations` (multipart form data)
+
+- `image`: required image file
+- `client_lat`: optional number
+- `client_lng`: optional number
+
+Response:
+
+```json
+{
+  "id": "uuid",
+  "asset_name": "road.jpg",
+  "coordinates": { "latitude": 37.7749, "longitude": -122.4194 },
+  "location_source": "exif | client_gps | ocr | unavailable",
+  "location_confidence": 0.0,
+  "ocr_text": null,
+  "hazard_type": "pothole",
+  "severity": "routine | urgent | critical | null",
+  "confidence": 0.0,
+  "description": "string",
+  "processing_status": "queued | processing | complete | failed",
+  "created_at": "ISO 8601"
+}
+```
+
+`GET /api/observations` lists normalized findings for the frontend and
+downstream routing agent. `GET /api/observations/:id` returns one finding.
+
 ## AI/ML service interface (backend calls this internally)
 
 Exposed by the AI/ML workstream, called by the backend after a report is

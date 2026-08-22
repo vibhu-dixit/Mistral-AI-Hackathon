@@ -35,3 +35,15 @@
 ## Getting started
 
 _TODO: once the stack is chosen, add install + run instructions here._
+
+## Observation pipeline
+
+`POST /api/observations` accepts a multipart `image` and optional
+`client_lat`/`client_lng`. EXIF GPS takes precedence over client GPS. The
+normalized response includes the coordinates, location source and confidence,
+Mistral finding fields, and processing status for downstream routing.
+
+The repository writes to memory by default for local development. Set
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to also insert into the
+`backend/supabase/001_observations.sql` schema. The current analysis function is
+a deterministic adapter until the Mistral service is connected.
