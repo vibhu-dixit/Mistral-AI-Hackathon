@@ -36,7 +36,7 @@ export function DashboardContent() {
     return hazardParam ?? highlightParam?.split(",")[0] ?? null;
   });
 
-  const { data: hazards, isLoading } = useHazards(filters);
+  const { data: hazards, isLoading, error } = useHazards(filters);
   const { data: selectedHazard } = useHazard(selectedId ?? undefined);
 
   function selectHazard(id: string) {
@@ -57,6 +57,7 @@ export function DashboardContent() {
           <p className="mt-1 text-sm text-rw-text-muted">
             {isLoading ? "Loading…" : `${hazards?.length ?? 0} hazards`}
           </p>
+          {error && <p className="mt-2 text-sm text-rw-severity-critical">{error.message}</p>}
         </div>
 
         <MapFilters filters={filters} onChange={setFilters} />

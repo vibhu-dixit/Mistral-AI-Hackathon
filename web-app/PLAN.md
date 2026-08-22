@@ -202,44 +202,23 @@ export interface AnalyzeResponse {
 }
 ```
 
-### 5.2 Mock/skeleton data
+### 5.2 Live data only
 
-`lib/mock/hazards.ts` — 7–8 sample `Hazard` objects, hand-picked to exercise
-every UI state at once:
+There is no mock-data path. Screens render whatever the backend returns
+from real Mistral analysis and stored hazards.
 
-- one of each of the 4 MVP categories (pothole, debris, blocked_lane, flooding)
-- one of each severity (routine, urgent, critical)
-- one with `duplicate: true` and a `duplicate_distance_m` (exercises the "possible duplicate" UI)
-- one with `image_url: null` (exercises `ImagePlaceholder`)
-- one of each status, including `"reported"` and `"resolved"` (exercises status filters/badges)
+### 5.3 API client
 
-This is deliberately "skeleton data" — real field shapes, placeholder
-content, empty gray boxes wherever an image would go — so every screen can
-be built, styled, and demoed against it before the AI/Backend lead's real
-`/analyze-image` endpoint exists.
-
-`lib/mock/report.ts` — one sample generated-report string, matching the
-brief's example ("Large pothole located in the westbound traffic lane…").
-
-### 5.3 API client + mock/real toggle
-
-`lib/api/client.ts` wraps two calls owned by the AI/Backend lead:
+`lib/api/client.ts` always calls the live backend at `NEXT_PUBLIC_API_BASE_URL`
+(default `http://localhost:8010`):
 
 ```
 analyzeImage(file, coords?) -> POST /analyze-image -> AnalyzeResponse
-analyzeVideo(file, coords?) -> POST /analyze-video -> AnalyzeResponse
-listHazards(filters?)       -> GET  /hazards        -> Hazard[]
-getHazard(id)                -> GET  /hazards/:id    -> Hazard
+analyzeVideo(...)           -> not supported (image-only MVP)
+listHazards(filters?)       -> GET  /api/hazards    -> Hazard[]
+getHazard(id)               -> GET  /api/hazards/:id -> Hazard
+submitReport(id)            -> POST /api/hazards/:id/submit
 ```
-
-Every function checks `process.env.NEXT_PUBLIC_USE_MOCK_DATA`:
-`"true"` returns the mock data from §5.2 (with an artificial delay to
-simulate the progress screen), anything else calls the real endpoint at
-`NEXT_PUBLIC_API_BASE_URL`. One flag, flipped in `.env.local`, switches the
-entire app between "fully working demo on mock data" and "wired to the real
-backend" — this is what makes the frontend demo-safe even if the backend
-integration breaks right before presenting (acceptance criteria: "demo runs
-reliably from beginning to end").
 
 ### 5.4 Hooks
 

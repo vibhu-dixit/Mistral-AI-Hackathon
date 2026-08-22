@@ -6,6 +6,8 @@ generated-report screen. See [`PLAN.md`](PLAN.md) for the full route map,
 component structure, and data types, and [`../docs/API_CONTRACT.md`](../docs/API_CONTRACT.md)
 for the shared hazard schema and backend endpoints.
 
+The app talks to the live backend only. There is no mock-data path.
+
 ## Setup
 
 ```bash
@@ -15,11 +17,7 @@ npm install
 npm run dev
 ```
 
-By default the app runs entirely on mock data (`NEXT_PUBLIC_USE_MOCK_DATA=true`
-in `.env.local`) — no backend required. To point it at the real backend, set
-`NEXT_PUBLIC_USE_MOCK_DATA=false` and `NEXT_PUBLIC_API_BASE_URL` to the
-backend's origin (defaults to `http://localhost:8010`, matching
-`backend/README.md`).
+`NEXT_PUBLIC_API_BASE_URL` defaults to `http://localhost:8010`.
 
 ## Notes
 

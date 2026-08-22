@@ -37,7 +37,7 @@ export function HazardDetail({ hazard }: { hazard: Hazard }) {
       </div>
 
       {hazard.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- external/mocked URLs
+        // eslint-disable-next-line @next/next/no-img-element -- Supabase/public image URLs
         <img
           src={hazard.image_url}
           alt={HAZARD_TYPE_LABEL[hazard.hazard_type]}

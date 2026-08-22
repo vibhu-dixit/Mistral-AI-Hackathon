@@ -16,6 +16,7 @@ interface HazardPinProps {
  * to break before a demo.
  */
 export function HazardPin({ hazard, onSelect }: HazardPinProps) {
+  if (!hazard.latitude && !hazard.longitude) return null;
   const color = SEVERITY_COLOR[hazard.severity];
 
   return (

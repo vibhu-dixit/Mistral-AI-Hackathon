@@ -62,4 +62,6 @@ body {
 /* Leaflet renders its own inline z-indexes; keep it below our modals/nav. */
 .leaflet-container {
   z-index: 0;
+  height: 100%;
+  width: 100%;
 }

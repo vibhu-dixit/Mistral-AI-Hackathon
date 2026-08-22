@@ -1,4 +1,10 @@
-export type HazardType = "pothole" | "debris" | "blocked_lane" | "flooding";
+export type HazardType =
+  | "pothole"
+  | "debris"
+  | "blocked_lane"
+  | "flooding"
+  | "collision"
+  | "damaged_signage";
 
 export type Severity = "routine" | "urgent" | "critical";
 
@@ -46,6 +52,8 @@ export const HAZARD_TYPE_LABEL: Record<HazardType, string> = {
   debris: "Road debris",
   blocked_lane: "Blocked lane",
   flooding: "Flooding",
+  collision: "Collision",
+  damaged_signage: "Damaged signage",
 };
 
 export const SEVERITY_LABEL: Record<Severity, string> = {

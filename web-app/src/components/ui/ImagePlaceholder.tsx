@@ -2,11 +2,7 @@ import { ImageOff } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 
-/**
- * The gray empty box shown whenever a hazard's image_url is null — which,
- * per the mock skeleton data, is every hazard until a real photo is wired
- * up. See PLAN.md §5.2 / §6.
- */
+/** Gray empty box shown when a stored hazard has no image URL. */
 export function ImagePlaceholder({ className }: { className?: string }) {
   return (
     <div
