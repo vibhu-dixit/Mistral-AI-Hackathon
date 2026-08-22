@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { useSubmitReport } from "@/hooks/useHazard";
@@ -25,8 +25,16 @@ export function ReportActions({ hazard }: { hazard: Hazard }) {
   }
 
   return (
-    <Button onClick={() => submit.mutate()} disabled={submit.isPending}>
-      {submit.isPending ? "Submitting..." : "Submit Report"}
-    </Button>
+    <div className="space-y-2">
+      <Button onClick={() => submit.mutate()} disabled={submit.isPending}>
+        {submit.isPending ? "Submitting..." : "Submit Report"}
+      </Button>
+      {submit.isError && (
+        <p className="flex items-center gap-1.5 text-sm text-rw-severity-critical">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {submit.error.message}
+        </p>
+      )}
+    </div>
   );
 }
