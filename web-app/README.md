@@ -20,9 +20,11 @@
 - Should work well on mobile browsers (this is how most citizens will
   actually use it — standing next to a pothole), so treat mobile-web as the
   primary layout target even though it's not a native app.
-- Pick your own stack (React, Vue, plain JS, etc.) — nothing is locked in
-  yet. Once chosen, add setup/run instructions here.
+- Stack: **Next.js (App Router) + TypeScript + Tailwind**, map via Mapbox
+  (Leaflet as a no-API-key fallback). See [`PLAN.md`](PLAN.md) for the full
+  route map, component structure, data types, mock data, and build order.
 
 ## Getting started
 
-_TODO: once the stack is chosen, add install + run instructions here._
+_TODO: once the Next.js app is scaffolded, add install + run instructions
+here._
